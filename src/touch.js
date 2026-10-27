@@ -255,7 +255,7 @@ export function installTouch(game) {
   game.addSystem({ update: (dt) => aimAssist(game, dt) });
   addSettingsCard(game, enabled);
   // installable app + offline fallback (service workers need https or localhost)
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (!game.native && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
   if (!enabled) return;
   document.body.classList.add('touch');
   // lighter defaults on first launch on a phone or tablet

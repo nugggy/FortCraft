@@ -3,8 +3,10 @@
 //   beta:   version.json on the main branch
 //   off:    never check
 // GitHub Pages players just reload. Local git installs can update in one click
-// (the server runs git pull). Other installs get a download link.
+// (the server runs git pull). The Android app downloads the new APK from the release.
+// Other installs get a download link.
 import { saveSettings } from './game.js';
+import { NATIVE } from './platform.js';
 
 export const REPO = 'nugggy/FortCraft';
 const RELEASES = `https://github.com/${REPO}/releases/latest`;
@@ -54,7 +56,7 @@ class Updater {
   async loadLocal() {
     try { this.local = await (await fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' })).json(); }
     catch { this.local = { version: '0.0.0' }; }
-    this.tag.textContent = `FortCraft v${this.local.version}${this.channel === 'beta' ? ' (beta channel)' : ''}`;
+    this.tag.textContent = `FortCraft v${this.local.version}${NATIVE ? ' for Android' : ''}${this.channel === 'beta' ? ' (beta channel)' : ''}`;
   }
 
   async fetchRemote() {
@@ -68,7 +70,9 @@ class Updater {
     if (r.status === 404) return null; // no releases yet
     if (!r.ok) throw new Error(`GitHub returned ${r.status}`);
     const j = await r.json();
-    return { version: j.tag_name, notes: (j.body || '').split('\n')[0].slice(0, 160), url: j.html_url || RELEASES };
+    // the Android app downloads the APK attached to the release
+    const apk = (j.assets || []).find(a => /\.apk$/i.test(a.name));
+    return { version: j.tag_name, notes: (j.body || '').split('\n')[0].slice(0, 160), url: j.html_url || RELEASES, apk: apk ? apk.browser_download_url : null };
   }
 
   async check(manual = false) {
@@ -93,7 +97,8 @@ class Updater {
   async showBanner() {
     const r = this.remote, v = r.version.replace(/^v?/, 'v');
     let actions = '';
-    if (this.onPages) actions = `<button class="ub-go" data-act="reload">Reload to update</button>`;
+    if (NATIVE) actions = `<button class="ub-go" data-act="apk">Download update</button>`;
+    else if (this.onPages) actions = `<button class="ub-go" data-act="reload">Reload to update</button>`;
     else {
       let info = { canUpdate: false };
       try { info = await (await fetch('/api/update-info', { cache: 'no-store' })).json(); } catch { /* old server or file:// */ }
@@ -109,6 +114,8 @@ class Updater {
       if (act === 'close') this.hideBanner();
       if (act === 'reload') location.replace(`${location.pathname}?v=${encodeURIComponent(r.version)}`);
       if (act === 'update') this.runUpdate(e.target);
+      // opens in the phone's browser; Android then offers to install the new APK over this one
+      if (act === 'apk') location.href = r.apk || r.url || RELEASES;
     };
   }
 
@@ -137,7 +144,7 @@ class Updater {
     card.className = 'card updcard';
     card.innerHTML = `<div class="cardhead"><h3>Updates</h3><button class="ghost small" id="updCheck">Check now</button></div>
       <label>Update channel <select id="updChannel"><option value="stable">Stable (releases)</option><option value="beta">Beta (latest code)</option><option value="off">Off</option></select></label>
-      <p class="hint">FortCraft checks GitHub for a newer version each time it loads.</p>
+      <p class="hint">FortCraft checks GitHub for a newer version each time it loads.${NATIVE ? ' On Android the update downloads as a new APK that installs over this one, keeping your progress.' : ''}</p>
       <div class="updstatus" id="updStatus"></div>`;
     panel.appendChild(card);
     const sel = card.querySelector('#updChannel');

@@ -13,6 +13,7 @@ import { installReplay } from './replay.js';
 import { installControlsUI } from './ui/controlsui.js';
 import { installUpdates } from './updates.js';
 import { installTouch } from './touch.js';
+import { installPlatform } from './platform.js';
 
 export function installFeatures(game) {
   // installs are added below by each feature module, one line each
@@ -26,6 +27,7 @@ export function installFeatures(game) {
   installSupplyDrops(game);
   installReplay(game);
   installControlsUI(game);
+  installPlatform(game);
   installUpdates(game);
   installTouch(game);
 }

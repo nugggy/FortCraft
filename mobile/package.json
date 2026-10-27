@@ -1,0 +1,18 @@
+{
+  "name": "fortcraft-mobile",
+  "private": true,
+  "version": "1.2.0",
+  "description": "Android app wrapper for FortCraft (Capacitor)",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3"
+  }
+}

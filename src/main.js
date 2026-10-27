@@ -2,6 +2,7 @@
 import { Game, saveSettings } from './game.js';
 import { installFeatures } from './features.js';
 import { enterTouchPlay } from './touch.js';
+import { NATIVE, ON_PAGES, askServerAddress } from './platform.js';
 import { OUTFITS, makeGlider, setHeld } from './models.js';
 import { GLIDERS, PICKAXES, outfitLevel, isUnlocked, unlocksBetween, sanitiseCosmetics } from './ui/cosmetics.js';
 import { INTRO, ENDING } from './story.js';
@@ -459,12 +460,14 @@ class UI {
     const startSolo = () => withIntro(() => { n.disconnect(); g.hostStart(); });
     const startLan = () => withIntro(async () => {
       if (this.screen !== 'menu') this.showScreen('menu');
+      if (ON_PAGES && !NATIVE) { $('menuMsg').textContent = 'LAN play needs the FortCraft server or the Android app. Open the address your server prints instead.'; return; }
+      if (NATIVE) { const addr = await askServerAddress(s); if (!addr) return; n.server = addr; }
       $('menuMsg').textContent = 'Connecting...';
       try {
         await n.connect(s.name, s.outfit);
         this.sendProfile(); // shares glider and pickaxe cosmetics with the lobby
         $('menuMsg').textContent = '';
-        $('lanAddr').textContent = location.host;
+        $('lanAddr').textContent = n.server || location.host;
         this.toLobby();
       } catch (e) { $('menuMsg').textContent = e.message; }
     });

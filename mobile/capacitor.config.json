@@ -1,0 +1,13 @@
+{
+  "appId": "io.github.nugggy.fortcraft",
+  "appName": "FortCraft",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#0b1022"
+  }
+}

@@ -3,3 +3,12 @@ media/
 *.log
 .DS_Store
 Thumbs.db
+mobile/node_modules/
+mobile/www/
+mobile/dist/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/build/
+mobile/android/local.properties
+*.keystore
+keystore.properties

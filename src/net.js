@@ -16,8 +16,9 @@ export class Net {
 
   connect(name, outfit) {
     return new Promise((resolve, reject) => {
-      if (location.protocol === 'file:') { reject(new Error('Open the game through the server (node server.js) to play on the LAN.')); return; }
-      const url = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
+      if (location.protocol === 'file:' && !this.server) { reject(new Error('Open the game through the server (node server.js) to play on the LAN.')); return; }
+      // this.server is set when joining from the Android app (it isn't served by the LAN server)
+      const url = this.server ? `ws://${this.server}/ws` : `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
       let ws;
       try { ws = new WebSocket(url); } catch (e) { reject(e); return; }
       const timer = setTimeout(() => { ws.close(); reject(new Error('Could not reach the FortCraft server.')); }, 4000);

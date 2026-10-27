@@ -36,6 +36,18 @@ FortCraft runs on phones and tablets in the browser. Touch controls switch on au
 
 Cross-play works over the LAN: phones, tablets and PCs join the same lobby by opening the server's LAN address. The lobby shows each player's device.
 
+## Android app
+
+Download **FortCraft.apk** from the latest release: https://github.com/nugggy/FortCraft/releases/latest
+
+1. Open the download on your phone. The first time, Android asks you to allow installs from your browser or Files app.
+2. Launch FortCraft. It runs fullscreen in landscape with touch controls, and solo play works offline.
+3. For LAN play, tap **LAN lobby** and enter the address the server prints (for example `192.168.1.20:8080`). The phone must be on the same Wi-Fi.
+
+**Updates:** the app checks GitHub every time it opens. When a new release is out, tap **Download update** on the banner and install it over the old app. Your progress and settings are kept.
+
+**Building the APK yourself:** you need Android Studio (for the SDK and its bundled Java) and Node.js. Run `mobile/build-apk.bat`. Release builds are signed with the key in your user folder under `.fortcraft`, which is never committed. Without that key, builds fall back to the debug key, and those can't install over the official app.
+
 ## Self-hosting on a NAS
 
 Docker files are included, so a NAS that runs containers (Synology Container Manager, QNAP Container Station, Unraid, TrueNAS and others) can host FortCraft for the whole household:
@@ -106,6 +118,7 @@ Five chapters guided by Echo, a rogue AI, against the Architect who runs the Loo
 ## Project layout
 
 - `server.js`: static file server and WebSocket relay for LAN play
+- `mobile/`: the Android app (Capacitor wrapper and build script)
 - `src/`: game code (world generation, meshing, actors, bots, combat, building, loot, storm, story, HUD, networking)
 - `vendor/three.module.min.js`: three.js r170
 - All textures and sounds are generated in code at runtime. There are no image or audio files.
