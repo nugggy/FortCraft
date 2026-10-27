@@ -1,0 +1,22 @@
+{
+  "name": "fortcraft",
+  "version": "1.0.0",
+  "description": "FortCraft: a voxel battle royale with LAN play",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/_test_gameplay.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "commonjs",
+  "dependencies": {
+    "ws": "^8.22.0"
+  },
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nugggy/FortCraft.git"
+  },
+  "homepage": "https://nugggy.github.io/FortCraft/"
+}

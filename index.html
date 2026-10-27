@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FortCraft</title>
+<link rel="preload" href="vendor/fonts/luckiest-guy-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app"></div>
+<div id="hurt"></div>
+
+<!-- ============ HUD ============ -->
+<div id="hud" class="hidden">
+  <div id="stormOverlay"></div>
+  <div id="crosshair" class="cross">
+    <i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><b class="dot"></b><span class="circle"></span>
+  </div>
+  <svg id="ring" viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="26"/><circle id="ringFill" class="fg" cx="32" cy="32" r="26"/></svg>
+  <div id="ringText"></div>
+  <div id="hitmarker"><i></i><i></i><i></i><i></i></div>
+  <div id="scope"><div class="ring"></div></div>
+  <div id="dmgDir"><div></div></div>
+  <div id="dmgNums"></div>
+  <div id="soundViz"></div>
+  <div id="wpLabel"></div>
+
+  <div id="compass"><canvas id="compassCanvas" width="560" height="46"></canvas><div class="needle"></div></div>
+
+  <div id="topright">
+    <div class="mmframe"><canvas id="minimap" width="220" height="220"></canvas></div>
+    <div id="stormRow">
+      <span class="ico storm"></span><span id="stormInfo"></span>
+      <span id="phaseDots"></span>
+    </div>
+    <div id="stats">
+      <div class="stat"><span class="ico alive"></span><b id="alive"></b></div>
+      <div class="stat"><span class="ico elims"></span><b id="kills"></b></div>
+    </div>
+    <div id="modeTag"></div>
+  </div>
+  <div id="objectives"></div>
+  <div id="killfeed"></div>
+  <div id="toasts"></div>
+  <div id="spectating"></div>
+
+  <div id="vitals">
+    <div class="bar over" id="overBar"><span class="ico ov"></span><div class="track"><div id="overFill" class="fill"></div></div><span id="overNum" class="num"></span></div>
+    <div class="bar shield"><span class="ico sh"></span><div class="track"><div id="shieldFill" class="fill"></div></div><span id="shieldNum" class="num"></span></div>
+    <div class="bar health"><span class="ico hp"></span><div class="track"><div id="healthFill" class="fill"></div></div><span id="healthNum" class="num"></span></div>
+  </div>
+  <div id="bottomright">
+    <div id="mats">
+      <div id="matbox_wood" class="mat"><img class="mi" data-tile="wood_build" alt=""><span id="mat_wood">0</span></div>
+      <div id="matbox_brick" class="mat"><img class="mi" data-tile="brick_build" alt=""><span id="mat_brick">0</span></div>
+      <div id="matbox_metal" class="mat"><img class="mi" data-tile="metal_build" alt=""><span id="mat_metal">0</span></div>
+    </div>
+    <div id="heldCard">
+      <img id="heldIcon" alt="">
+      <div class="info">
+        <div id="heldRarity"></div>
+        <div id="heldName"></div>
+        <div class="ammoline"><span id="ammoType"></span><span id="ammo"></span></div>
+      </div>
+    </div>
+    <div id="hotbar"></div>
+  </div>
+  <div id="buildbar"></div>
+  <div id="prompt"></div>
+  <div id="progress"><div id="progressFill" class="fill"></div><span id="progressText"></span></div>
+  <div id="pieceHp"><i></i><span></span></div>
+  <div id="notice"></div>
+  <div id="banner"><h1></h1><p></p></div>
+  <div id="elimText"></div>
+  <div id="busHint"></div>
+  <div id="radio"><img alt=""><div><div class="who"></div><div class="text"></div></div></div>
+</div>
+
+<div id="bigmap">
+  <div class="mapwrap">
+    <div class="maphead">
+      <h2>CUBETERRA</h2>
+      <span class="maphint">Click to place a marker. Right-click to remove it. Press M to close.</span>
+      <button id="btnMapClose" class="ghost">Close</button>
+    </div>
+    <div class="mapbody">
+      <canvas id="bigmapCanvas" width="800" height="800"></canvas>
+      <div class="legend">
+        <h3>Legend</h3>
+        <div><i class="lg you"></i>You</div>
+        <div><i class="lg mate"></i>LAN players</div>
+        <div><i class="lg wp"></i>Your marker</div>
+        <div><i class="lg safe"></i>Next safe zone</div>
+        <div><i class="lg storm"></i>The Static</div>
+        <div><i class="lg bus"></i>Bus route</div>
+        <div><i class="lg shard"></i>Seed Shard</div>
+        <div><i class="lg poi"></i>Named location</div>
+        <div id="mapInfo"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FRONT END ============ -->
+<div id="menu" class="screen">
+  <header class="topbar">
+    <div class="brand"><span class="b1">FORT</span><span class="b2">CRAFT</span></div>
+    <nav id="tabs">
+      <button data-tab="play" class="tab on">Play</button>
+      <button data-tab="story" class="tab">Story</button>
+      <button data-tab="locker" class="tab">Locker</button>
+      <button data-tab="settings" class="tab">Settings</button>
+      <button data-tab="help" class="tab">How to play</button>
+    </nav>
+    <div class="playercard">
+      <div class="lvl"><small>LVL</small><b id="pcLevel">1</b></div>
+      <div class="pcinfo">
+        <div id="pcName">Looper</div>
+        <div class="xpbar"><i id="pcXp"></i></div>
+        <div id="pcXpText" class="xptext"></div>
+      </div>
+    </div>
+  </header>
+
+  <section id="tab-play" class="tabpanel on">
+    <div class="playleft">
+      <div class="card modecard">
+        <h3>Who's dropping</h3>
+        <label class="field">Name <input id="nameInput" maxlength="16"></label>
+        <div class="seg" id="segNet"><button data-v="solo" class="on">Solo</button><button data-v="lan">LAN lobby</button></div>
+        <h3>Mode</h3>
+        <div class="seg modes"><button id="modeBuild" class="mode">Builds</button><button id="modeZero" class="mode">No Builds</button></div>
+        <p class="modedesc" id="modeDesc"></p>
+        <div id="soloOpts">
+          <h3>Bots</h3>
+          <div class="seg" id="segBots"><button data-v="0">0</button><button data-v="10">10</button><button data-v="24">24</button><button data-v="40">40</button><button data-v="60">60</button></div>
+          <h3>Bot skill</h3>
+          <div class="seg" id="segSkill"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button></div>
+        </div>
+      </div>
+      <div class="card chaptercard" id="chapterCard"></div>
+    </div>
+    <div class="showcase">
+      <div class="pedestal"></div>
+      <div class="outfitline"><button id="outPrev" class="arrow">&lt;</button><span id="outfitName"></span><button id="outNext" class="arrow">&gt;</button></div>
+    </div>
+    <div class="playright">
+      <p id="menuMsg" class="msg"></p>
+      <div class="playsub" id="playSub"></div>
+      <button class="playbtn" id="btnPlay">PLAY</button>
+      <!-- kept so scripts and tests that click these still work -->
+      <button id="btnSolo" class="hidden-btn" tabindex="-1">Solo</button>
+      <button id="btnLan" class="hidden-btn" tabindex="-1">LAN</button>
+    </div>
+  </section>
+
+  <section id="tab-story" class="tabpanel">
+    <div class="storywrap">
+      <div class="card storymain">
+        <div class="kicker">The Loop of Cubeterra</div>
+        <h2 id="storyTitle"></h2>
+        <p id="storyBrief" class="sub"></p>
+        <div id="storyObjs"></div>
+        <div class="chapters" id="chapterDots"></div>
+        <div class="row"><button id="btnIntro">Replay intro</button><button id="btnStoryReset" class="danger">Reset progress</button></div>
+      </div>
+      <div class="card codexcard">
+        <h3>Codex</h3>
+        <div id="codex"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-locker" class="tabpanel">
+    <div class="lockerwrap">
+      <div class="card lockergrid">
+        <div class="seg lockertabs" id="lockerTabs"><button data-k="outfit" class="on">Outfits</button><button data-k="glider">Gliders</button><button data-k="pickaxe">Pickaxes</button></div>
+        <div class="lockerinfo" id="lockerInfo"></div>
+        <div id="lockerGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-settings" class="tabpanel"><div class="tabslot" id="settingsHomeTab"></div></section>
+  <section id="tab-help" class="tabpanel"><div class="tabslot" id="helpHomeTab"></div></section>
+</div>
+
+<div id="lobby" class="screen">
+  <div class="panel wide lobbypanel">
+    <div class="kicker">LAN lobby</div>
+    <h2>Squad up</h2>
+    <p class="sub">Players on your network join by opening <b id="lanAddr"></b> in their browser.</p>
+    <div class="lobbycols">
+      <ul id="lobbyList"></ul>
+      <div id="hostControls" class="card">
+        <h3>Match settings</h3>
+        <label class="field">Mode <select id="lobbyMode"><option value="build">Builds</option><option value="zero">No Builds</option></select></label>
+        <label class="field">Bots <input type="range" id="lobbyBots" min="0" max="60"> <b id="lobbyBotsVal"></b></label>
+        <label class="field">Bot skill <select id="lobbyDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option></select></label>
+        <button class="playbtn small" id="btnLobbyStart">START MATCH</button>
+      </div>
+    </div>
+    <p id="lobbyWait" class="sub wait"></p>
+    <button id="btnLobbyLeave" class="ghost">Leave lobby</button>
+  </div>
+</div>
+
+<div id="settings" class="screen">
+  <div class="panel wide"><div class="tabslot" id="settingsHomeModal"></div><button class="back">Done</button></div>
+</div>
+<div id="settingsPanel" class="settingsgrid">
+  <div class="card">
+    <h3>Gameplay</h3>
+    <label class="field">Bots in solo <input type="range" id="setBots" min="0" max="60"> <b id="setBotsVal"></b></label>
+    <label class="field">Bot skill <select id="setDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option></select></label>
+    <label class="check"><input type="checkbox" id="setSoundViz"> Visualise sound effects</label>
+  </div>
+  <div class="card">
+    <h3>Controls</h3>
+    <label class="field">Mouse sensitivity <input type="range" id="setSens" min="0.2" max="3" step="0.05"> <b id="setSensVal"></b></label>
+    <label class="check"><input type="checkbox" id="setInvert"> Invert mouse Y</label>
+  </div>
+  <div class="card">
+    <h3>Video and audio</h3>
+    <label class="field">Graphics quality <select id="setQuality"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
+    <label class="field">Field of view <input type="range" id="setFov" min="60" max="100"> <b id="setFovVal"></b></label>
+    <label class="field">Volume <input type="range" id="setVol" min="0" max="1" step="0.05"> <b id="setVolVal"></b></label>
+    <!-- presentation module: music volume and voiced radio lines (wired in src/music.js) -->
+    <label class="field">Music volume <input type="range" id="setMusic" min="0" max="1" step="0.05"> <b id="setMusicVal"></b></label>
+    <label class="check"><input type="checkbox" id="setVoice"> Voiced radio lines</label>
+  </div>
+</div>
+
+<div id="help" class="screen">
+  <div class="panel wide"><div class="tabslot" id="helpHomeModal"></div><button class="back">Back</button></div>
+</div>
+<div id="helpPanel" class="helpgrid">
+  <div class="card">
+    <h3>Move and fight</h3>
+    <p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move, <kbd>Space</kbd> jump</p>
+    <p><kbd>Shift</kbd> sprint, <kbd>C</kbd> crouch (slide while sprinting)</p>
+    <p>Every key can be changed in Settings, and controllers work too.</p>
+    <p><kbd>Left click</kbd> shoot or swing</p>
+    <p><kbd>Right click</kbd> aim down sights</p>
+    <p><kbd>1</kbd> pickaxe, <kbd>2</kbd> to <kbd>6</kbd> inventory, <kbd>Wheel</kbd> cycle</p>
+    <p><kbd>R</kbd> reload, <kbd>E</kbd> pick up, hold <kbd>E</kbd> on chests</p>
+    <p><kbd>M</kbd> full map, <kbd>Esc</kbd> pause</p>
+  </div>
+  <div class="card">
+    <h3>Build</h3>
+    <p><kbd>Q</kbd> wall, <kbd>Z</kbd> floor, <kbd>X</kbd> ramp, <kbd>V</kbd> cone</p>
+    <p><kbd>Left click</kbd> place, hold to spam</p>
+    <p><kbd>Right click</kbd> next piece</p>
+    <p><kbd>R</kbd> while building swaps wood, brick and metal</p>
+    <p><kbd>G</kbd> toggles build mode. Each piece costs 10 materials.</p>
+    <p>Harvest by hitting trees, houses and rocks with the pickaxe.</p>
+  </div>
+  <div class="card">
+    <h3>Survive</h3>
+    <p>Jump from the Battle Bus with <kbd>Space</kbd>. Your glider opens near the ground.</p>
+    <p>Golden chests sparkle and hum. Rarity runs grey, green, blue, purple, gold.</p>
+    <p>Stay inside the circle. The purple Static hurts more each phase.</p>
+    <p>Open the map with <kbd>M</kbd> and click to drop a marker.</p>
+    <p>Be the last Looper standing for a Victory Royale.</p>
+  </div>
+</div>
+
+<div id="loading" class="screen">
+  <div class="loadwrap">
+    <div class="brand big"><span class="b1">FORT</span><span class="b2">CRAFT</span></div>
+    <h2 id="loadText">Loading</h2>
+    <div class="loadbar"><i id="loadFill"></i></div>
+    <div class="tipbox"><span class="tiptag">TIP</span><p id="loadTip"></p></div>
+    <div id="tipDots"></div>
+  </div>
+</div>
+
+<div id="pause" class="screen">
+  <div class="panel center pausepanel">
+    <div class="kicker">FortCraft</div>
+    <h2 id="pauseTitle">Paused</h2>
+    <button class="playbtn small" id="btnResume">CLICK TO PLAY</button>
+    <div class="row">
+      <button id="btnPauseSettings">Settings</button>
+      <button id="btnPauseHelp">Controls</button>
+    </div>
+    <button id="btnQuit" class="danger">Leave match</button>
+  </div>
+</div>
+
+<div id="end" class="screen">
+  <div id="confetti"></div>
+  <div class="endwrap">
+    <div id="victory" class="victory"><span>VICTORY</span><span>ROYALE</span></div>
+    <h1 id="endTitle"></h1>
+    <p id="endSub" class="sub"></p>
+    <div id="endStats"></div>
+    <div class="xpsummary" id="xpSummary">
+      <div class="xprow"><div class="lvl"><small>LVL</small><b id="endLevel">1</b></div><div class="xpbar big"><i id="endXpFill"></i></div><b id="endXpGain"></b></div>
+      <div id="xpBreakdown"></div>
+    </div>
+    <div class="endbtns">
+      <button class="playbtn small" id="btnSpectate">SPECTATE</button>
+      <button class="playbtn small" id="btnAgain">PLAY AGAIN</button>
+      <button id="btnEndMenu" class="ghost">Main menu</button>
+    </div>
+  </div>
+</div>
+
+<div id="crawl" class="screen">
+  <div class="crawlbox">
+    <div class="crawlstage">
+      <img id="crawlPortrait" alt="">
+      <div class="crawlbody">
+        <div id="crawlSpeaker"></div>
+        <p id="crawlText"></p>
+      </div>
+    </div>
+    <div class="crawlprog" id="crawlProg"></div>
+    <div class="row center">
+      <button class="playbtn small" id="btnCrawl">CONTINUE</button>
+      <button id="btnCrawlSkip" class="ghost">Skip</button>
+    </div>
+  </div>
+</div>
+
+<div id="levelToast"><div class="lvl"><small>LVL</small><b id="levelToastNum"></b></div><div><b>LEVEL UP!</b><span>Keep looping.</span></div></div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
