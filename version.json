@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "released": "2026-10-27",
-  "notes": "First public release: voxel battle royale with LAN play, squads, creative mode, story campaign and more."
+  "notes": "Mobile and tablet support with touch controls, phone/PC cross-play on the LAN, installable home-screen app, and Docker files for NAS hosting."
 }

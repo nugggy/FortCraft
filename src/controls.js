@@ -59,6 +59,10 @@ export class Controls {
     this.usingPad = false;
     this.enabled = () => true;
     this.capture = null;             // rebinding: callback(code)
+    // virtual source for on-screen touch controls (src/touch.js)
+    this.vHeld = new Set(); this.vEdges = new Set();
+    this.vMove = { x: 0, z: 0 }; this.vdx = 0; this.vdy = 0;
+    this.usingTouch = false;
     this.loadBinds();
     this.listen();
   }
@@ -148,14 +152,20 @@ export class Controls {
     if (now.size || this.padMove.x || this.padMove.z || this.padLook.x || this.padLook.y) this.usingPad = true;
   }
 
+  // Touch API: hold/release an action, tap it for one frame, or feed movement and look.
+  vPress(action) { if (!this.vHeld.has(action)) this.vEdges.add(action); this.vHeld.add(action); this.usingTouch = true; }
+  vRelease(action) { this.vHeld.delete(action); }
+  vTap(action) { this.vEdges.add(action); this.usingTouch = true; }
+  vLook(dx, dy) { this.vdx += dx; this.vdy += dy; this.usingTouch = true; }
+
   down(action) {
-    if (this.padHeld.has(action)) return true;
+    if (this.padHeld.has(action) || this.vHeld.has(action)) return true;
     for (const c of this.binds[action] || []) if (this.held.has(c)) return true;
     return false;
   }
 
   pressed(action) {
-    if (this.padEdges.has(action)) return true;
+    if (this.padEdges.has(action) || this.vEdges.has(action)) return true;
     for (const c of this.binds[action] || []) if (this.edges.has(c)) return true;
     return false;
   }
@@ -165,7 +175,7 @@ export class Controls {
     let x = 0, z = 0;
     if (this.down('forward')) z -= 1; if (this.down('back')) z += 1;
     if (this.down('left')) x -= 1; if (this.down('right')) x += 1;
-    x += this.padMove.x; z += this.padMove.z;
+    x += this.padMove.x + this.vMove.x; z += this.padMove.z + this.vMove.z;
     const len = Math.hypot(x, z);
     if (len > 1) { x /= len; z /= len; }
     return { x, z };
@@ -175,11 +185,12 @@ export class Controls {
   look(dt) {
     const curve = (v) => Math.sign(v) * v * v;
     const ps = this.settings.padSens ?? 1, pinv = this.settings.padInvert ? -1 : 1; // controller settings (Settings > Controller)
-    const dx = this.mdx + curve(this.padLook.x) * 1500 * dt * ps;
-    const dy = this.mdy + curve(this.padLook.y) * 1000 * dt * ps * pinv;
-    this.mdx = this.mdy = 0;
+    const ts = this.settings.touchSens ?? 1;
+    const dx = this.mdx + curve(this.padLook.x) * 1500 * dt * ps + this.vdx * 1.6 * ts;
+    const dy = this.mdy + curve(this.padLook.y) * 1000 * dt * ps * pinv + this.vdy * 1.6 * ts;
+    this.mdx = this.mdy = 0; this.vdx = this.vdy = 0;
     return { dx, dy };
   }
 
-  endFrame() { this.edges.clear(); }
+  endFrame() { this.edges.clear(); this.vEdges.clear(); }
 }

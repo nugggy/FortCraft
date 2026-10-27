@@ -1,6 +1,7 @@
 // Front end, lobby, story, locker, end screens and pointer lock.
 import { Game, saveSettings } from './game.js';
 import { installFeatures } from './features.js';
+import { enterTouchPlay } from './touch.js';
 import { OUTFITS, makeGlider, setHeld } from './models.js';
 import { GLIDERS, PICKAXES, outfitLevel, isUnlocked, unlocksBetween, sanitiseCosmetics } from './ui/cosmetics.js';
 import { INTRO, ENDING } from './story.js';
@@ -106,6 +107,8 @@ class UI {
   }
 
   lockPointer() {
+    // touch devices have no pointer lock: just start playing (fullscreen landscape where supported)
+    if (this.g.touch) { this.g.paused = false; this.showScreen(null); enterTouchPlay(); return; }
     const el = this.g.renderer.domElement;
     try { const r = el.requestPointerLock(); if (r && r.catch) r.catch(() => this.showPause()); } catch { this.showPause(); }
   }
@@ -240,7 +243,7 @@ class UI {
       const o = OUTFITS[p.outfit % OUTFITS.length] || OUTFITS[0];
       const status = p.id === n.hostId ? '<span class="badge host">HOST</span>' : `<span class="badge">${p.spectator ? 'SPECTATING' : p.inMatch ? 'IN MATCH' : 'READY'}</span>`;
       return `<li class="${p.id === n.id ? 'me' : ''}"><span class="chip" style="background:linear-gradient(${o.hair} 0 30%, ${o.skin} 30% 55%, ${o.shirt} 55%)"></span>
-        <span class="nm">${escapeHtml(p.name)}<small>${escapeHtml(o.name)}${p.id === n.id ? ' · you' : ''}</small></span>${status}</li>`;
+        <span class="nm">${escapeHtml(p.name)}<small>${p.platform === 'mobile' ? '&#128241; Mobile' : '&#128187; PC'} · ${escapeHtml(o.name)}${p.id === n.id ? ' · you' : ''}</small></span>${status}</li>`;
     }).join('');
     const host = n.isHost;
     $('hostControls').style.display = host ? '' : 'none';

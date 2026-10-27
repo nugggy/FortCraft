@@ -536,3 +536,26 @@ body.replaying #hud, body.replaying #bigmap { display: none !important; }
 .rv-bar input[type=range] { flex: 1; }
 .rv-btn { min-width: 74px; }
 .rv-time { font: 800 13px var(--font); min-width: 92px; text-align: center; color: var(--muted); }
+
+/* ================= Phones in landscape (short screens) ================= */
+@media (max-height: 520px) and (orientation: landscape) {
+  .screen { zoom: .82; }
+  .topbar { flex-wrap: nowrap; gap: 10px; padding: 6px 12px; }
+  .brand { font-size: 20px; }
+  #tabs { order: 0; width: auto; flex: 1; justify-content: center; overflow-x: auto; scrollbar-width: none; }
+  #tabs::-webkit-scrollbar { display: none; }
+  .tab { font-size: 14px; padding: 6px 8px 3px; white-space: nowrap; }
+  .playercard { min-width: 0; padding: 6px 10px; gap: 8px; }
+  .playercard .xptext, .playercard .xpbar { display: none; }
+  #tab-play { flex-direction: row; overflow: hidden; gap: 10px; padding: 4px 12px 10px; }
+  .tabpanel { padding: 4px 12px 10px; overflow: auto; }
+  .playleft { width: 290px; gap: 8px; overflow: auto; }
+  .playleft .card { padding: 10px 12px; }
+  .chaptercard { display: none; }
+  .modedesc { display: none; }
+  .showcase { min-height: 0; }
+  .playright { width: 230px; }
+  .playbtn { font-size: 34px; padding: 10px 30px 6px; }
+  .storywrap, .lockerwrap { flex-direction: row; }
+  .lobbycols { flex-direction: row; }
+}

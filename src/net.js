@@ -21,7 +21,7 @@ export class Net {
       let ws;
       try { ws = new WebSocket(url); } catch (e) { reject(e); return; }
       const timer = setTimeout(() => { ws.close(); reject(new Error('Could not reach the FortCraft server.')); }, 4000);
-      ws.onopen = () => ws.send(JSON.stringify({ t: 'hello', name, outfit }));
+      ws.onopen = () => ws.send(JSON.stringify({ t: 'hello', name, outfit, platform: this.platform || 'desktop' }));
       ws.onerror = () => { clearTimeout(timer); reject(new Error('Could not reach the FortCraft server.')); };
       ws.onclose = () => {
         if (this.online) { this.online = false; this.dispatch({ t: 'disconnected' }); }

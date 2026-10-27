@@ -22,6 +22,34 @@ Or download the latest release zip from https://github.com/nugggy/FortCraft/rele
 
 The server prints a LAN address such as `http://192.168.1.20:8080`. Other players on the same network open that address in their browser. If Windows Firewall asks whether to allow Node.js on private networks, allow it, or other computers won't be able to connect.
 
+## Mobile and cross-play
+
+FortCraft runs on phones and tablets in the browser. Touch controls switch on automatically.
+
+- **Move:** the left thumb is a floating joystick. Push it all the way forward to sprint.
+- **Aim:** drag anywhere on the right side, or drag on the fire button while shooting.
+- **Buttons:** fire, jump, crouch or slide, aim, reload, build (with wall, floor, ramp and cone buttons in build mode), and a Use button that appears next to chests, loot, vending machines and minecarts.
+- **Shortcuts:** tap hotbar slots to equip, and tap the minimap for the full map.
+- **Aim assist:** a light assist for touch and controller players keeps cross-play fair. Mouse players never get assist. Turn it off in Settings under Touch and mobile.
+- **Phone defaults:** phones start on Low graphics with 10 bots. Play in landscape.
+- **Home screen app:** on the online version (or any HTTPS host) you can add FortCraft to your home screen. It then opens fullscreen like an app.
+
+Cross-play works over the LAN: phones, tablets and PCs join the same lobby by opening the server's LAN address. The lobby shows each player's device.
+
+## Self-hosting on a NAS
+
+Docker files are included, so a NAS that runs containers (Synology Container Manager, QNAP Container Station, Unraid, TrueNAS and others) can host FortCraft for the whole household:
+
+```
+docker compose up -d
+```
+
+Then open `http://<nas-address>:8080` on every device. To change the port, edit `docker-compose.yml`.
+
+- **Health check:** `/api/health` reports whether the server is up, plus the player count.
+- **Updating a Docker install:** pull the latest code, then run `docker compose up -d --build`. The in-game banner links to the release notes.
+- **HTTPS (optional):** needed for "add to home screen" and offline play on phones. Put the NAS's reverse proxy in front of port 8080 with a certificate, and pass WebSockets through (path `/ws`). The game switches to secure WebSockets automatically on HTTPS.
+
 ## Updates
 
 FortCraft checks GitHub for a newer version every time it loads and shows a banner in the lobby when one is out.

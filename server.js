@@ -9,8 +9,8 @@ const { execFile } = require('child_process');
 
 const PORT = Number(process.argv[2] || process.env.PORT || 8080);
 const ROOT = __dirname;
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff' };
-const ALLOWED = ['index.html', 'style.css', 'version.json', 'src', 'vendor'];
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff', '.webmanifest': 'application/manifest+json' };
+const ALLOWED = ['index.html', 'style.css', 'version.json', 'manifest.webmanifest', 'sw.js', 'icons', 'src', 'vendor'];
 const LOCAL = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
 const isGit = () => fs.existsSync(path.join(ROOT, '.git'));
 
@@ -35,6 +35,7 @@ const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
   if (p === '/') p = '/index.html';
   if (p === '/api/update-info' || p === '/api/update') return handleUpdateApi(req, res, p);
+  if (p === '/api/health') { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: true, players: clients.size, inMatch })); return; }
   const file = path.normalize(path.join(ROOT, p));
   const rel = path.relative(ROOT, file);
   if (rel.startsWith('..') || !ALLOWED.some(a => rel === a || rel.startsWith(a + path.sep))) { res.writeHead(404); res.end('Not found'); return; }
@@ -49,7 +50,7 @@ const wss = new WebSocketServer({ server, path: '/ws' });
 const clients = new Map(); // id -> { ws, name, outfit }
 let nextId = 1, hostId = 0, inMatch = false;
 
-const lobby = () => [...clients.entries()].map(([id, c]) => ({ id, name: c.name, outfit: c.outfit, glider: c.glider, pickaxe: c.pickaxe, inMatch: c.inMatch, spectator: !!c.spectator }));
+const lobby = () => [...clients.entries()].map(([id, c]) => ({ id, name: c.name, outfit: c.outfit, glider: c.glider, pickaxe: c.pickaxe, platform: c.platform, inMatch: c.inMatch, spectator: !!c.spectator }));
 const sendTo = (id, msg) => { const c = clients.get(id); if (c && c.ws.readyState === 1) c.ws.send(typeof msg === 'string' ? msg : JSON.stringify(msg)); };
 const broadcast = (msg, except = -1) => { const s = JSON.stringify(msg); for (const id of clients.keys()) if (id !== except) sendTo(id, s); };
 const pushLobby = () => broadcast({ t: 'lobby', lobby: lobby(), hostId, inMatch });
@@ -61,7 +62,7 @@ wss.on('connection', (ws, req) => {
     try { msg = JSON.parse(raw); } catch { return; }
     if (msg.t === 'hello') {
       id = nextId++;
-      clients.set(id, { ws, name: String(msg.name || 'Player').slice(0, 16), outfit: msg.outfit | 0, inMatch, spectator: inMatch }); // late joiners spectate until the next match
+      clients.set(id, { ws, name: String(msg.name || 'Player').slice(0, 16), outfit: msg.outfit | 0, platform: msg.platform === 'mobile' ? 'mobile' : 'desktop', inMatch, spectator: inMatch }); // late joiners spectate until the next match
       if (!hostId || !clients.has(hostId)) hostId = id;
       sendTo(id, { t: 'welcome', id, hostId, lobby: lobby(), inMatch });
       pushLobby();

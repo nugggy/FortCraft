@@ -12,6 +12,7 @@ import { installSupplyDrops } from './supplydrop.js';
 import { installReplay } from './replay.js';
 import { installControlsUI } from './ui/controlsui.js';
 import { installUpdates } from './updates.js';
+import { installTouch } from './touch.js';
 
 export function installFeatures(game) {
   // installs are added below by each feature module, one line each
@@ -26,4 +27,5 @@ export function installFeatures(game) {
   installReplay(game);
   installControlsUI(game);
   installUpdates(game);
+  installTouch(game);
 }

@@ -1,0 +1,10 @@
+# Run on a NAS or any Docker host:  docker compose up -d
+# Then open http://<nas-address>:8080 on every device (PCs, phones, tablets).
+services:
+  fortcraft:
+    build: .
+    image: fortcraft:latest
+    container_name: fortcraft
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
