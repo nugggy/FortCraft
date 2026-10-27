@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "released": "2026-10-27",
-  "notes": "Android app (APK) with touch controls, an in-app LAN server picker and an update channel that downloads new versions."
+  "notes": "Fix: tapping items in the loadout now switches to them on phones and tablets."
 }

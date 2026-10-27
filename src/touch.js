@@ -143,8 +143,8 @@ class TouchControls {
   bindStick() {
     const zone = this.$('tMoveZone'), stick = this.$('tStick'), knob = stick.firstElementChild, R = 56;
     zone.addEventListener('pointerdown', (e) => {
-      if (this.stick) return;
       e.preventDefault();
+      if (this.hudTap(e.clientX, e.clientY) || this.stick) return;
       this.stick = { id: e.pointerId, x: e.clientX, y: e.clientY };
       try { zone.setPointerCapture(e.pointerId); } catch { /* synthetic or stale pointer */ }
       stick.style.display = 'block'; stick.style.left = e.clientX + 'px'; stick.style.top = e.clientY + 'px';
@@ -174,8 +174,8 @@ class TouchControls {
   bindLook() {
     const zone = this.$('tLookZone');
     zone.addEventListener('pointerdown', (e) => {
-      if (this.look) return;
       e.preventDefault();
+      if (this.hudTap(e.clientX, e.clientY) || this.look) return;
       this.look = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), sx: e.clientX, sy: e.clientY };
       try { zone.setPointerCapture(e.pointerId); } catch { /* synthetic or stale pointer */ }
     });
@@ -192,7 +192,19 @@ class TouchControls {
     zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end);
   }
 
-  // Tap hotbar slots to equip and the minimap to open the full map.
+  // The joystick and look pad cover the whole screen above the HUD, so a touch that starts
+  // on a loadout slot or the minimap is routed here first. Returns true if it was handled.
+  hudTap(x, y) {
+    const inside = (el) => { if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 0 && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
+    const slots = document.querySelectorAll('#hotbar .slot');
+    for (let i = 0; i < slots.length; i++) {
+      if (inside(slots[i])) { this.C.vTap(['pickaxe', 'slot1', 'slot2', 'slot3', 'slot4', 'slot5'][i]); return true; }
+    }
+    if (inside(document.getElementById('minimap'))) { this.game.toggleBigMap(); return true; }
+    return false;
+  }
+
+  // Tap hotbar slots to equip and the minimap to open the full map (used when they're on top).
   bindHud() {
     const hb = document.getElementById('hotbar');
     if (hb) hb.addEventListener('pointerdown', (e) => {

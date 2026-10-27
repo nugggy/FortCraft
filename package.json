@@ -1,6 +1,6 @@
 {
   "name": "fortcraft",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "FortCraft: a voxel battle royale with LAN play",
   "main": "server.js",
   "scripts": {
