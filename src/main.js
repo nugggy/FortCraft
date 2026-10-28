@@ -110,6 +110,8 @@ class UI {
   lockPointer() {
     // touch devices have no pointer lock: just start playing (fullscreen landscape where supported)
     if (this.g.touch) { this.g.paused = false; this.showScreen(null); enterTouchPlay(); return; }
+    // controller players don't need the mouse captured (and a gamepad press can't request it)
+    if (this.g.controller?.controls?.usingPad) { this.g.paused = false; this.showScreen(null); return; }
     const el = this.g.renderer.domElement;
     try { const r = el.requestPointerLock(); if (r && r.catch) r.catch(() => this.showPause()); } catch { this.showPause(); }
   }
@@ -515,7 +517,7 @@ class UI {
       if (document.pointerLockElement === g.renderer.domElement) {
         g.paused = false;
         if (this.screen === 'pause' || this.screen === 'end') this.showScreen(null);
-      } else if (g.inMatch() && this.screen === null && !g.bigMapOpen && !g.creativeMenuOpen) this.showPause();
+      } else if (g.inMatch() && this.screen === null && !g.bigMapOpen && !g.creativeMenuOpen && !g.controller?.controls?.usingPad) this.showPause();
     });
     g.renderer.domElement.addEventListener('click', () => { if (g.inMatch() && !document.pointerLockElement && this.screen === null && !g.bigMapOpen && !g.creativeMenuOpen && !g.replay?.active) this.lockPointer(); });
   }

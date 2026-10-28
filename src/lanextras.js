@@ -7,7 +7,7 @@ import { PIECE_HP } from './building.js';
 import { escapeHtml } from './hud.js';
 
 // Messages that change the world; buffered while a catch-up is loading so nothing is lost.
-const WORLD_MSGS = ['blk', 'boom', 'piece', 'pdmg', 'loot+', 'loot-'];
+const WORLD_MSGS = ['blk', 'boom', 'piece', 'pdmg', 'pedit', 'loot+', 'loot-'];
 
 export function installLanExtras(game) {
   const L = new LanExtras(game);

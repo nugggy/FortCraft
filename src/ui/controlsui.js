@@ -1,17 +1,12 @@
 // Settings: key rebinding, controller options and accessibility (colour-blind mode, kill cam).
 import { saveSettings } from '../game.js';
-import { ACTION_LABELS, PAD_BUTTONS, PAD_BUILD, keyLabel } from '../controls.js';
+import { ACTION_LABELS, PAD_LAYOUT, keyLabel } from '../controls.js';
 import { applyColourBlind, RARITY, RARITY_LETTERS } from '../items.js';
 
-const PAD_NAMES = {
-  0: 'A', 1: 'B', 2: 'X', 3: 'Y', 4: 'LB', 5: 'RB', 6: 'LT', 7: 'RT', 8: 'View', 9: 'Menu',
-  10: 'Left stick', 11: 'Right stick', 12: 'D-pad up', 13: 'D-pad down', 14: 'D-pad left', 15: 'D-pad right',
-};
-const PAD_EXTRA_LABELS = { pause: 'Pause', prevPiece: 'Previous build piece', nextPiece: 'Next build piece' };
 const GROUPS = [
   ['Movement', ['forward', 'back', 'left', 'right', 'jump', 'sprint', 'crouch']],
   ['Combat', ['fire', 'ads', 'reload', 'interact', 'pickaxe', 'slot1', 'slot2', 'slot3', 'slot4', 'slot5', 'nextItem', 'prevItem']],
-  ['Building', ['wall', 'floor', 'ramp', 'cone', 'buildToggle', 'cycleMat']],
+  ['Building', ['wall', 'floor', 'ramp', 'cone', 'buildToggle', 'cycleMat', 'edit']],
   ['Other', ['map', 'ping', 'emote', 'scoreboard']],
 ];
 // Bindings that may share a key on purpose (R reloads, or swaps material in build mode).
@@ -117,10 +112,11 @@ export function installControlsUI(game) {
   const syncPad = () => { padSens.value = s.padSens; padSensVal.textContent = (+s.padSens).toFixed(2); padInv.checked = !!s.padInvert; };
   padSens.oninput = () => { s.padSens = +padSens.value; padSensVal.textContent = s.padSens.toFixed(2); saveSettings(s); };
   padInv.onchange = () => { s.padInvert = padInv.checked; saveSettings(s); };
-  const label = (a) => ACTION_LABELS[a] || PAD_EXTRA_LABELS[a] || a;
-  padCard.querySelector('#padMap').innerHTML = Object.keys(PAD_BUTTONS).map(i =>
-    `<div class="padrow"><b>${PAD_NAMES[i]}</b><span>${label(PAD_BUTTONS[i])}${PAD_BUILD[i] ? ` <small>(build: ${label(PAD_BUILD[i]).toLowerCase()})</small>` : ''}</span></div>`).join('') +
-    '<div class="padrow"><b>Left stick</b><span>Move</span></div><div class="padrow"><b>Right stick</b><span>Look</span></div>';
+  padCard.querySelector('#padMap').innerHTML = '<div class="padrow"><b>Layout</b><span>Builder Pro (like Fortnite)</span></div>' +
+    PAD_LAYOUT.map(([b, combat, build]) =>
+      `<div class="padrow"><b>${b}</b><span>${combat}${build && build !== combat ? ` <small>(build: ${build.toLowerCase()})</small>` : ''}</span></div>`).join('') +
+    '<div class="padrow"><b>Left stick</b><span>Move</span></div><div class="padrow"><b>Right stick</b><span>Look</span></div>' +
+    '<div class="padrow"><b>Menus</b><span>D-pad or left stick to move, A select, B back, LB / RB switch tabs</span></div>';
   const padStatus = () => {
     const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(p => p && p.connected) : [];
     const st = padCard.querySelector('#padStatus');

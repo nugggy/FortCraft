@@ -124,3 +124,40 @@ spawned.length = 0;
 a.pos.set(drop.pos.x + 1, drop.y, drop.pos.z);
 ok(sd.open(a, drop) && spawned.filter(it => it.kind === 'weapon' && it.rarity >= 3).length === 2 && emitted.includes('sdropopen'), `supply drop opened: ${spawned.map(i => i.kind + ':' + (i.id || i.ammo || i.mat)).join(', ')}`);
 ok(sd.drops.length === 0, 'opened drop removed');
+
+// --- build edits (Fortnite style): walls are 3x3 tiles, floors 2x2
+{
+  const { BuildSystem } = await import('../src/building.js');
+  game.sameTeam = () => false; game.blockColor = () => 0;
+  const bs = new BuildSystem(game);
+  const EY = 52, wx = 120, wz0 = 104; // pieces sit on the 4-block build grid
+  for (let x = 118; x < 130; x++) for (let z = 100; z < 112; z++) for (let y = EY; y < EY + 6; y++) world.put(x, y, z, B.AIR);
+  a.pos.set(110.5, Y, 110.5); // stand clear of the test pieces
+  const wall = []; for (let y = EY; y <= EY + 4; y++) for (let z = wz0; z <= wz0 + 4; z++) wall.push([wx, y, z]);
+  bs.create('p0:1', 'wood', wall);
+  const piece = bs.pieces.get('p0:1');
+  const L = bs.layout(piece);
+  ok(L.count === 9, `wall has a 3x3 edit grid (${L.count} tiles)`);
+  ok(bs.canEdit(a, piece), 'owner can edit their wall');
+  ok(!bs.canEdit({ id: 'p9' }, piece), 'other players cannot edit it');
+  sent.length = 0;
+  bs.edit(a, piece, [1, 4]); // bottom-middle and centre tiles: a door
+  const solid = (x, y, z) => world.get(x, y, z) !== B.AIR;
+  ok(!solid(wx, EY, wz0 + 2) && !solid(wx, EY + 3, wz0 + 1) && !solid(wx, EY + 3, wz0 + 3), 'door opening is clear');
+  ok(solid(wx, EY, wz0) && solid(wx, EY + 4, wz0 + 2) && solid(wx, EY, wz0 + 4), 'door frame stays');
+  ok(sent.some(m => m.t === 'pedit' && m.id === 'p0:1' && m.r.length === 2), 'edit is broadcast');
+  bs.applyEdit(piece, []);
+  ok(solid(wx, EY, wz0 + 2) && solid(wx, EY + 3, wz0 + 1), 'reset restores the wall');
+  bs.edit(a, piece, [0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  ok(piece.removed.length === 8, 'a piece always keeps at least one tile');
+  const floor = []; for (let z = 104; z <= 108; z++) for (let x = 124; x <= 128; x++) floor.push([x, EY, z]);
+  bs.create('p0:2', 'brick', floor);
+  const fp = bs.pieces.get('p0:2');
+  ok(bs.layout(fp).count === 4, 'floor has a 2x2 edit grid');
+  bs.edit(a, fp, [0]);
+  ok(!solid(124, EY, 104) && !solid(125, EY, 105) && solid(126, EY, 106) && solid(128, EY, 108), 'floor quarter removed, centre line kept');
+  const origin = new THREE.Vector3(wx - 3, EY + 0.5, wz0 + 2.5), dir = new THREE.Vector3(1, 0, 0);
+  ok(bs.tileOnRay(piece, origin, dir) === 1, `crosshair ray picks the bottom-middle tile (${bs.tileOnRay(piece, origin, dir)})`);
+  bs.destroy(fp);
+  ok(world.get(126, EY, 106) === B.AIR && !bs.pieces.has('p0:2'), 'edited piece still destroys cleanly');
+}

@@ -610,6 +610,7 @@ export class Game {
     n.on('chest', (m) => { if (n.isHost) this.loot.hostOpenChest(m.x, m.y, m.z, m.actor); });
     n.on('piece', (m) => this.build.create(m.id, m.mat, m.blocks));
     n.on('pdmg', (m) => { const p = this.build.pieces.get(m.id); if (p) this.build.damagePiece(p, m.d); });
+    n.on('pedit', (m) => { const p = this.build.pieces.get(m.id); if (p) this.build.applyEdit(p, m.r || []); });
     n.on('blk', (m) => { for (const [x, y, z, id] of m.b) { this.build.forget(this.world.idx(x, y, z)); this.world.set(x, y, z, id); } });
     n.on('boom', (m) => { this.combat.removeRocket(m.rid); this.applyExplosion(new THREE.Vector3(...m.p), m.r); });
     n.on('fx', (m) => {

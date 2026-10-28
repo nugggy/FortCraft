@@ -10,7 +10,7 @@ export const DEFAULT_BINDS = {
   pickaxe: ['Digit1'], slot1: ['Digit2'], slot2: ['Digit3'], slot3: ['Digit4'], slot4: ['Digit5'], slot5: ['Digit6'],
   nextItem: ['WheelDown'], prevItem: ['WheelUp'],
   wall: ['KeyQ'], floor: ['KeyZ'], ramp: ['KeyX'], cone: ['KeyV'],
-  buildToggle: ['KeyG'], cycleMat: ['KeyR'],
+  buildToggle: ['KeyG'], cycleMat: ['KeyR'], edit: ['KeyF'],
   map: ['KeyM'], ping: ['M1'], emote: ['KeyB'], scoreboard: ['Tab'],
 };
 
@@ -19,18 +19,32 @@ export const ACTION_LABELS = {
   crouch: 'Crouch / slide', fire: 'Fire / use', ads: 'Aim down sights', reload: 'Reload', interact: 'Interact / pick up',
   pickaxe: 'Pickaxe', slot1: 'Slot 1', slot2: 'Slot 2', slot3: 'Slot 3', slot4: 'Slot 4', slot5: 'Slot 5',
   nextItem: 'Next item', prevItem: 'Previous item', wall: 'Build wall', floor: 'Build floor', ramp: 'Build ramp', cone: 'Build cone',
-  buildToggle: 'Toggle build mode', cycleMat: 'Change material (build mode)', map: 'Full map', ping: 'Place marker', emote: 'Emote wheel', scoreboard: 'Team / scoreboard',
+  buildToggle: 'Toggle build mode', cycleMat: 'Change material (build mode)', edit: 'Edit build piece (press again to confirm)', map: 'Full map', ping: 'Place marker', emote: 'Emote wheel', scoreboard: 'Team / scoreboard',
 };
 
-// Standard gamepad mapping (Xbox layout names). Values are action names.
+// Standard gamepad mapping (Xbox layout names), laid out like Fortnite's Builder Pro.
+// Values are an action name or a list of actions. B and X are contextual and handled in poll():
+// tap B toggles build mode, hold B edits the piece you're aiming at; X picks up or opens when
+// there's something to interact with, otherwise it reloads (or swaps material in build mode).
 export const PAD_BUTTONS = {
-  0: 'jump', 1: 'crouch', 2: 'interact', 3: 'buildToggle', 4: 'prevItem', 5: 'nextItem', 6: 'ads', 7: 'fire',
-  8: 'map', 9: 'pause', 10: 'sprint', 11: 'pickaxe', 12: 'emote', 13: 'ping', 14: 'cycleMat', 15: 'reload',
+  0: 'jump', 3: 'pickaxe', 4: 'prevItem', 5: 'nextItem', 6: 'ads', 7: 'fire',
+  8: 'map', 9: 'pause', 10: 'sprint', 11: 'crouch', 12: 'emote', 13: 'ping', 14: 'scoreboard', 15: 'cycleMat',
 };
-// In build mode the bumpers cycle build pieces instead of items.
-export const PAD_BUILD = { 4: 'prevPiece', 5: 'nextPiece' };
+// In build mode each trigger and bumper picks a piece and places it (hold to keep placing).
+export const PAD_BUILD = { 7: ['wall', 'fire'], 6: ['ramp', 'fire'], 5: ['floor', 'fire'], 4: ['cone', 'fire'] };
+// What the controller card in Settings lists: [button, combat, build mode].
+export const PAD_LAYOUT = [
+  ['RT', 'Fire', 'Wall'], ['LT', 'Aim down sights', 'Ramp'], ['RB', 'Next item', 'Floor'], ['LB', 'Previous item', 'Cone'],
+  ['A', 'Jump', 'Jump'], ['B', 'Tap: build mode. Hold: edit', 'Tap: combat mode. Hold: edit'],
+  ['X', 'Reload / interact', 'Change material / interact'], ['Y', 'Pickaxe', 'Pickaxe'],
+  ['Left stick click', 'Sprint', 'Sprint'], ['Right stick click', 'Crouch', 'Crouch'],
+  ['D-pad up', 'Emote', 'Emote'], ['D-pad down', 'Place marker', 'Place marker'], ['D-pad left', 'Team / scoreboard', 'Team / scoreboard'],
+  ['View', 'Map', 'Map'], ['Menu', 'Pause', 'Pause'],
+  ['Editing', 'RT selects tiles (hold and drag), LT resets, B confirms', ''],
+];
 
 const PAD_DEAD = 0.18;
+const EDIT_HOLD = 0.25; // seconds B is held before it means edit rather than build mode
 
 export function keyLabel(code) {
   if (!code) return '';
@@ -57,6 +71,10 @@ export class Controls {
     this.padMove = { x: 0, z: 0 };
     this.padLook = { x: 0, y: 0 };
     this.usingPad = false;
+    this.padSuppress = null;         // pad buttons to ignore until released (set when a menu closes)
+    this.bHeld = 0;                  // seconds B has been held (-1 once it has acted)
+    this.contextInteract = () => false; // true when X should interact rather than reload
+    this.padBlocked = () => false;   // true while a menu has the controller (src/gamepad.js drives menus)
     this.enabled = () => true;
     this.capture = null;             // rebinding: callback(code)
     // virtual source for on-screen touch controls (src/touch.js)
@@ -130,30 +148,51 @@ export class Controls {
     addEventListener('contextmenu', (e) => { if (this.enabled()) e.preventDefault(); });
   }
 
-  // Poll gamepads once per frame (before reading actions).
-  poll(buildMode) {
+  // Poll gamepads once per frame (before reading actions). `editing` is true while a piece is being edited.
+  poll(buildMode, editing = false, dt = 1 / 60) {
     this.padEdges.clear();
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     const pad = [...pads].find(p => p && p.connected);
     this.padConnected = !!pad;
-    if (!pad) { this.padHeld.clear(); this.padMove.x = this.padMove.z = 0; this.padLook.x = this.padLook.y = 0; return; }
+    if (!pad || this.padBlocked()) { this.padHeld.clear(); this.padMove.x = this.padMove.z = 0; this.padLook.x = this.padLook.y = 0; this.bHeld = 0; return; }
     const dz = (v) => Math.abs(v) < PAD_DEAD ? 0 : (v - Math.sign(v) * PAD_DEAD) / (1 - PAD_DEAD);
     this.padMove.x = dz(pad.axes[0] || 0); this.padMove.z = dz(pad.axes[1] || 0);
     this.padLook.x = dz(pad.axes[2] || 0); this.padLook.y = dz(pad.axes[3] || 0);
     const now = new Set();
-    pad.buttons.forEach((b, i) => {
+    const sup = this.padSuppress;
+    const down = pad.buttons.map((b, i) => {
       const pressed = b.pressed || b.value > 0.5;
-      if (!pressed) return;
-      const action = (buildMode && PAD_BUILD[i]) || PAD_BUTTONS[i];
-      if (action) now.add(action);
+      if (sup && sup.has(i)) { if (pressed) return false; sup.delete(i); } // held over from a menu: wait for release
+      return pressed;
     });
+    down.forEach((pressed, i) => {
+      if (!pressed || i === 1 || i === 2) return;
+      const action = (buildMode && !editing && PAD_BUILD[i]) || PAD_BUTTONS[i];
+      if (action) for (const a of [].concat(action)) now.add(a);
+    });
+    // X: interact when there's something to interact with, otherwise reload / change material
+    if (down[2]) {
+      if (this.contextInteract()) now.add('interact');
+      else { now.add('reload'); now.add('cycleMat'); }
+    }
     for (const a of now) if (!this.padHeld.has(a)) this.padEdges.add(a);
     this.padHeld = now;
-    if (now.size || this.padMove.x || this.padMove.z || this.padLook.x || this.padLook.y) this.usingPad = true;
+    // B: tap for build mode, hold for edit; while editing a tap confirms
+    if (down[1]) {
+      if (!this.bHeld && editing) { this.padEdges.add('edit'); this.bHeld = -1; }
+      else if (this.bHeld >= 0) {
+        this.bHeld += dt;
+        if (this.bHeld >= EDIT_HOLD) { this.padEdges.add('edit'); this.bHeld = -1; }
+      }
+    } else {
+      if (this.bHeld > 0) this.padEdges.add('buildToggle');
+      this.bHeld = 0;
+    }
+    if (now.size || down[1] || this.padMove.x || this.padMove.z || this.padLook.x || this.padLook.y) this.usingPad = true;
   }
 
   // Touch API: hold/release an action, tap it for one frame, or feed movement and look.
-  vPress(action) { if (!this.vHeld.has(action)) this.vEdges.add(action); this.vHeld.add(action); this.usingTouch = true; }
+  vPress(action) { if (!this.vHeld.has(action)) this.vEdges.add(action); this.vHeld.add(action); this.usingTouch = true; this.usingPad = false; }
   vRelease(action) { this.vHeld.delete(action); }
   vTap(action) { this.vEdges.add(action); this.usingTouch = true; }
   vLook(dx, dy) { this.vdx += dx; this.vdy += dy; this.usingTouch = true; }

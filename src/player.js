@@ -11,7 +11,7 @@ const SLOT_ACTIONS = ['pickaxe', 'slot1', 'slot2', 'slot3', 'slot4', 'slot5'];
 // Actions the core controller handles itself. Everything else is forwarded as an
 // 'input' event (game.events.emit('input', action)) for feature modules.
 const CORE = new Set(['forward', 'back', 'left', 'right', 'jump', 'sprint', 'crouch', 'fire', 'ads', 'reload', 'interact',
-  ...SLOT_ACTIONS, 'nextItem', 'prevItem', 'wall', 'floor', 'ramp', 'cone', 'buildToggle', 'cycleMat', 'map']);
+  ...SLOT_ACTIONS, 'nextItem', 'prevItem', 'wall', 'floor', 'ramp', 'cone', 'buildToggle', 'cycleMat', 'edit', 'map']);
 const EXTRA = ['ping', 'emote', 'scoreboard'];
 
 export class PlayerController {
@@ -25,6 +25,11 @@ export class PlayerController {
     this.kickPitch = 0;
     this.fov = 75;
     this.buildRepeat = 0;
+    this.edit = null;        // piece being edited: { piece, sel: Set of tiles to remove, drag, wasBuild }
+    this.editTarget = null;  // editable piece under the crosshair
+    this.interactable = false;
+    this.controls.contextInteract = () => this.interactable;
+    this.controls.padBlocked = () => (game.ui && game.ui.screen !== null) || !!game.creativeMenuOpen;
   }
 
   get actor() { return this.game.player; }
@@ -37,7 +42,8 @@ export class PlayerController {
   // Called each frame during a match.
   update(dt) {
     const g = this.game, a = this.actor, C = this.controls;
-    C.poll(g.buildMode);
+    C.poll(g.buildMode, !!this.edit, dt);
+    if (this.edit && (!a.alive || a.state !== 'ground' || a.downed)) this.cancelEdit();
     if (C.pressed('pause')) { if (g.paused) { g.paused = false; g.ui.showScreen(null); } else g.ui.showPause(); }
     const look = C.look(dt);
     this.lastLook = look; // spectator free cam reads this
@@ -81,6 +87,9 @@ export class PlayerController {
 
   handleActions(dt) {
     const g = this.game, a = this.actor, C = this.controls;
+    // switching item or mode while editing confirms the edit, like Fortnite
+    if (this.edit && (SLOT_ACTIONS.some(act => C.pressed(act)) || C.pressed('buildToggle'))) this.finishEdit();
+    if (this.updateEdit()) return;
     // slot selection
     SLOT_ACTIONS.forEach((act, i) => { if (C.pressed(act)) { g.buildMode = false; a.select(i); } });
     if (!g.buildMode && (C.pressed('nextItem') || C.pressed('prevItem'))) {
@@ -127,6 +136,8 @@ export class PlayerController {
       }
     }
     a.searchT = this.searchT;
+    this.interactable = !!prompt;
+    if (!prompt && this.editTarget) prompt = `${C.usingPad ? 'Hold <b>B</b>' : `<b>${C.label('edit')}</b>`} Edit`;
     g.hud.set('prompt', 'html', prompt);
 
     if (g.buildMode) {
@@ -146,6 +157,62 @@ export class PlayerController {
       const { origin, dir } = this.aim();
       g.combat.fire(a, origin, dir, C.pressed('fire'));
     }
+  }
+
+  // ---------------------------------------------------------------- editing
+  // Fortnite-style edits: aim at your own (or a teammate's) piece and press edit, select tiles with
+  // fire (hold and drag), then press edit again to confirm. Aim down sights resets the piece.
+  // Returns true while editing, so normal combat and building input is skipped.
+  updateEdit() {
+    const g = this.game, a = this.actor, C = this.controls, bs = g.build, cam = g.camera;
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
+    if (!this.edit) {
+      const start = cam.position.clone().addScaledVector(fwd, this.camDist + 0.3);
+      const hit = g.noBuild ? null : g.world.raycast(start.x, start.y, start.z, fwd.x, fwd.y, fwd.z, 6);
+      const piece = hit && bs.pieceAt(hit.x, hit.y, hit.z);
+      this.editTarget = piece && bs.canEdit(a, piece) ? piece : null;
+      if (!this.editTarget || !C.pressed('edit')) return false;
+      this.edit = { piece: this.editTarget, sel: new Set(this.editTarget.removed || []), drag: null, wasBuild: g.buildMode };
+      a.reloading = 0; a.using = null; a.ads = false;
+      bs.hideGhost();
+      this.editTarget = null;
+      bs.showEdit(this.edit.piece, this.edit.sel, -1);
+      return true; // the same press must not also confirm
+    }
+    const e = this.edit;
+    const L = bs.layout(e.piece);
+    const mid = L.centres[Math.floor(L.count / 2)];
+    if (!bs.pieces.has(e.piece.id)) { this.cancelEdit(); return false; }
+    if (mid.distanceTo(a.pos) > 9) { this.finishEdit(); return false; } // walked away: keep what was selected
+    const hover = bs.tileOnRay(e.piece, cam.position, fwd);
+    // the first tile pressed decides whether the drag selects or clears
+    if (C.pressed('fire') && hover >= 0) e.drag = !e.sel.has(hover);
+    if (C.down('fire') && e.drag !== null && hover >= 0) { if (e.drag) e.sel.add(hover); else e.sel.delete(hover); }
+    if (!C.down('fire')) e.drag = null;
+    if (C.pressed('ads')) { e.sel.clear(); C.vRelease('ads'); this.finishEdit(); return true; }
+    if (C.pressed('edit')) { this.finishEdit(); return true; }
+    a.ads = false;
+    bs.showEdit(e.piece, e.sel, hover);
+    this.interactable = false;
+    const k = (pad, act) => `<b>${C.usingPad ? pad : C.label(act)}</b>`;
+    g.hud.set('prompt', 'html', g.touch && !C.usingPad ? 'EDITING: hold <b>fire</b> and drag to select, <b>aim</b> resets, <b>Done</b> confirms'
+      : `EDITING: ${k('RT', 'fire')} select ${k('LT', 'ads')} reset ${k('B', 'edit')} confirm`);
+    return true;
+  }
+
+  finishEdit() {
+    const e = this.edit, g = this.game;
+    if (!e) return;
+    this.edit = null;
+    g.build.hideEdit();
+    if (g.build.pieces.has(e.piece.id)) g.build.edit(this.actor, e.piece, [...e.sel]);
+    g.buildMode = e.wasBuild;
+  }
+
+  cancelEdit() {
+    if (!this.edit) return;
+    this.edit = null;
+    this.game.build.hideEdit();
   }
 
   // Shot ray: from the actor's eye toward whatever the crosshair is on.

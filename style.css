@@ -559,3 +559,22 @@ body.replaying #hud, body.replaying #bigmap { display: none !important; }
   .storywrap, .lockerwrap { flex-direction: row; }
   .lobbycols { flex-direction: row; }
 }
+
+/* ================= Safe areas (notches, camera cut-outs, rounded corners) =================
+   The Android app draws edge to edge, so the HUD and menus keep clear of cut-outs and keep the
+   same margin on both sides. The app injects --safe-area-inset-*; browsers provide env(). */
+body {
+  --sx: max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px), var(--safe-area-inset-left, 0px), var(--safe-area-inset-right, 0px));
+  --st: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --sb: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+}
+/* phones and tablets also get a small gutter so nothing sits under rounded corners */
+body.touch { --sx: max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px), var(--safe-area-inset-left, 0px), var(--safe-area-inset-right, 0px), 16px);
+  --st: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px), 6px); --sb: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px), 6px); }
+#hud { inset: var(--st) var(--sx) var(--sb) var(--sx); }
+#hud #stormOverlay, #hud #scope { inset: calc(-1 * var(--st)) calc(-1 * var(--sx)) calc(-1 * var(--sb)) calc(-1 * var(--sx)); }
+.screen { padding: var(--st) var(--sx) var(--sb); box-sizing: border-box; }
+#bigmap { padding: var(--st) var(--sx) var(--sb); box-sizing: border-box; }
+.panel { max-height: calc(100vh - 32px - var(--st) - var(--sb)); max-height: calc(100dvh - 32px - var(--st) - var(--sb)); }
+body.touch .playleft, body.touch .tabpanel { overflow-x: hidden; scrollbar-width: none; }
+body.touch .playleft::-webkit-scrollbar, body.touch .tabpanel::-webkit-scrollbar { display: none; }

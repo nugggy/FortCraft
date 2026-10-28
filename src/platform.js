@@ -8,6 +8,7 @@ export const ON_PAGES = /\.github\.io$/i.test(location.hostname);
 export function askServerAddress(settings) {
   return new Promise((resolve) => {
     const wrap = document.createElement('div');
+    wrap.className = 'padlayer';
     wrap.style.cssText = 'position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:rgba(4,6,16,.75);font-family:Rubik,sans-serif';
     wrap.innerHTML = `<div style="background:#141a33;border:2px solid #3b4a7a;border-radius:14px;padding:18px 20px;width:min(420px,90vw);color:#fff">
       <div style="font:400 26px Lucky,sans-serif;color:#ffd84a;margin-bottom:6px">Join a LAN server</div>
@@ -45,6 +46,7 @@ export function installPlatform(game) {
   const App = window.Capacitor?.Plugins?.App;
   if (App?.addListener) {
     App.addListener('backButton', () => {
+      if (game.menuPad?.recentB?.()) return; // a controller's B button, already handled as back or crouch
       if (game.inMatch() && game.ui.screen === null) game.ui.showPause();
       else if (game.ui.screen === 'pause') { game.paused = false; game.ui.showScreen(null); }
       else if (game.bigMapOpen) game.toggleBigMap();

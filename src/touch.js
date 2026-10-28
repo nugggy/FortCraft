@@ -9,7 +9,7 @@ export function isTouchDevice() {
 }
 
 const CSS = `
-#touchUI { position: fixed; inset: 0; z-index: 6; pointer-events: none; display: none; touch-action: none; user-select: none; -webkit-user-select: none; }
+#touchUI { position: fixed; inset: var(--st, 0px) var(--sx, 0px) var(--sb, 0px); z-index: 6; pointer-events: none; display: none; touch-action: none; user-select: none; -webkit-user-select: none; }
 body.touch.in-match-play #touchUI { display: block; }
 #touchUI .zone { position: absolute; top: 0; bottom: 0; pointer-events: auto; touch-action: none; }
 #tMoveZone { left: 0; width: 42%; }
@@ -33,6 +33,8 @@ body.touch.in-match-play #touchUI { display: block; }
 #tBuild { right: 3%; bottom: 48%; width: 50px; height: 50px; }
 #tUse { right: 30%; bottom: 44%; width: 70px; height: 70px; border-radius: 18px; background: rgba(60, 170, 90, .7); display: none; }
 #tUse.show { display: grid; }
+#tEdit { right: calc(3% + 60px); bottom: 48%; width: 50px; height: 50px; border-radius: 12px; font-size: 11px; background: rgba(40,140,230,.7); display: none; }
+#tEdit.show { display: grid; }
 #tEmote { left: 3%; top: 62%; width: 44px; height: 44px; }
 #tPause { left: 50%; top: 6px; width: 40px; height: 40px; margin-left: -20px; border-radius: 10px; }
 #tPieces { position: absolute; right: 12%; top: 24%; display: none; gap: 6px; pointer-events: none; }
@@ -82,7 +84,7 @@ class TouchControls {
       <div class="tbtn" id="tFire">${ICONS.fire}</div><div class="tbtn" id="tFireL">${ICONS.fire}</div>
       <div class="tbtn" id="tJump">${ICONS.jump}</div><div class="tbtn" id="tCrouch">${ICONS.crouch}</div>
       <div class="tbtn" id="tAds">${ICONS.ads}</div><div class="tbtn" id="tReload">${ICONS.reload}</div>
-      <div class="tbtn" id="tBuild">${ICONS.build}</div><div class="tbtn" id="tUse">Use</div>
+      <div class="tbtn" id="tBuild">${ICONS.build}</div><div class="tbtn" id="tUse">Use</div><div class="tbtn" id="tEdit">Edit</div>
       <div class="tbtn" id="tEmote">${ICONS.emote}</div><div class="tbtn" id="tPause">${ICONS.pause}</div>
       <div id="tPieces"><div class="tbtn" data-p="wall">Wall</div><div class="tbtn" data-p="floor">Floor</div><div class="tbtn" data-p="ramp">Ramp</div><div class="tbtn" data-p="cone">Cone</div><div class="tbtn" data-mat="1">Mat</div></div>`;
     document.body.appendChild(this.root);
@@ -96,6 +98,7 @@ class TouchControls {
     this.toggleBtn('tAds', 'ads');
     this.tap('tReload', () => this.C.vTap(game.buildMode ? 'cycleMat' : 'reload'));
     this.tap('tBuild', () => this.C.vTap('buildToggle'));
+    this.tap('tEdit', () => this.C.vTap('edit'));
     this.tap('tEmote', () => { game.emotes?.play?.(['bop', 'swing', 'wave'][Math.random() * 3 | 0]); });
     this.tap('tPause', () => game.ui.showPause());
     for (const b of this.$('tPieces').children) {
@@ -226,9 +229,13 @@ class TouchControls {
     const prompt = document.getElementById('prompt');
     const text = prompt ? prompt.textContent.trim() : '';
     const use = this.$('tUse');
-    use.classList.toggle('show', !!text);
+    use.classList.toggle('show', !!text && !!g.controller.interactable);
     if (text) use.textContent = /search/i.test(text) ? 'Open' : /buy/i.test(text) ? 'Buy' : /ride/i.test(text) ? 'Ride' : /revive/i.test(text) ? 'Revive' : 'Pick up';
     this.$('tBuild').style.display = g.noBuild ? 'none' : '';
+    const edit = this.$('tEdit'), editing = !!g.controller.edit;
+    edit.classList.toggle('show', playing && !g.noBuild && (editing || !!g.controller.editTarget));
+    edit.textContent = editing ? 'Done' : 'Edit';
+    this.$('tAds').classList.toggle('on', this.C.vHeld.has('ads'));
     for (const b of this.$('tPieces').children) b.classList.toggle('sel', b.dataset.p === g.buildPiece);
   }
 }

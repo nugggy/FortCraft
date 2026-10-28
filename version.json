@@ -1,5 +1,5 @@
 {
-  "version": "1.2.1",
-  "released": "2026-10-27",
-  "notes": "Fix: tapping items in the loadout now switches to them on phones and tablets."
+  "version": "1.3.0",
+  "released": "2026-10-29",
+  "notes": "Xbox controller support with a Fortnite-style layout, editing build pieces, a better fit on phone screens and a Share button."
 }

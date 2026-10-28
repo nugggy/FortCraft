@@ -14,6 +14,8 @@ import { installControlsUI } from './ui/controlsui.js';
 import { installUpdates } from './updates.js';
 import { installTouch } from './touch.js';
 import { installPlatform } from './platform.js';
+import { installGamepad } from './gamepad.js';
+import { installShare } from './share.js';
 
 export function installFeatures(game) {
   // installs are added below by each feature module, one line each
@@ -30,4 +32,6 @@ export function installFeatures(game) {
   installPlatform(game);
   installUpdates(game);
   installTouch(game);
+  installGamepad(game);
+  installShare(game);
 }

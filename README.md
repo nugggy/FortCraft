@@ -104,10 +104,29 @@ You earn XP for eliminations, chests, placement and wins, and level up over time
 | Pickaxe, inventory slots | 1, 2 to 6 (or mouse wheel) |
 | Reload | R |
 | Pick up, search chest | E (hold E on chests) |
-| Wall, floor, ramp, cone | Q, Z, X, C |
+| Wall, floor, ramp, cone | Q, Z, X, V |
 | Toggle build mode, swap material | G, R while building |
+| Edit a piece you built (select tiles, confirm, reset) | F, then click or drag tiles, F to confirm, right-click to reset |
 | Full map (click to place a marker, right-click to clear) | M |
 | Pause | Esc |
+
+### Controller
+
+Xbox and other standard controllers work on PC and on phones (Bluetooth or USB), using a layout modelled on Fortnite's Builder Pro:
+
+| Button | Combat | Build mode |
+| --- | --- | --- |
+| RT / LT | Fire / aim down sights | Wall / ramp |
+| RB / LB | Next / previous item | Floor / cone |
+| A | Jump | Jump |
+| B | Tap: build mode. Hold: edit | Tap: back to combat. Hold: edit |
+| X | Reload, or interact when there's something to pick up or open | Change material, or interact |
+| Y | Pickaxe | Pickaxe |
+| Left stick click / right stick click | Sprint / crouch | Sprint / crouch |
+| D-pad up / down / left | Emote / place marker / team | Same |
+| View / Menu | Map / pause | Same |
+
+While editing, RT selects tiles (hold and drag), LT resets the piece and B confirms. In menus, the d-pad or left stick moves, A selects, B goes back and LB / RB switch tabs. On a phone the touch controls hide while a controller is in use and come back when you touch the screen.
 
 Sound effects can be shown as on-screen indicators around the crosshair (on by default, toggle in Settings).
 
