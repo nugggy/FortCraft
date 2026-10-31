@@ -11,7 +11,7 @@ export const DEFAULT_BINDS = {
   nextItem: ['WheelDown'], prevItem: ['WheelUp'],
   wall: ['KeyQ'], floor: ['KeyZ'], ramp: ['KeyX'], cone: ['KeyV'],
   buildToggle: ['KeyG'], cycleMat: ['KeyR'], edit: ['KeyF'],
-  map: ['KeyM'], ping: ['M1'], emote: ['KeyB'], scoreboard: ['Tab'],
+  map: ['KeyM'], ping: ['M1'], emote: ['KeyB'], scoreboard: ['Tab'], inventory: ['KeyI'],
 };
 
 export const ACTION_LABELS = {
@@ -19,7 +19,7 @@ export const ACTION_LABELS = {
   crouch: 'Crouch / slide', fire: 'Fire / use', ads: 'Aim down sights', reload: 'Reload', interact: 'Interact / pick up',
   pickaxe: 'Pickaxe', slot1: 'Slot 1', slot2: 'Slot 2', slot3: 'Slot 3', slot4: 'Slot 4', slot5: 'Slot 5',
   nextItem: 'Next item', prevItem: 'Previous item', wall: 'Build wall', floor: 'Build floor', ramp: 'Build ramp', cone: 'Build cone',
-  buildToggle: 'Toggle build mode', cycleMat: 'Change material (build mode)', edit: 'Edit build piece (press again to confirm)', map: 'Full map', ping: 'Place marker', emote: 'Emote wheel', scoreboard: 'Team / scoreboard',
+  buildToggle: 'Toggle build mode', cycleMat: 'Change material (build mode)', edit: 'Edit build piece (press again to confirm)', map: 'Full map', ping: 'Place marker', emote: 'Emote wheel', scoreboard: 'Team / scoreboard', inventory: 'Inventory (swap slots)',
 };
 
 // Standard gamepad mapping (Xbox layout names), laid out like Fortnite's Builder Pro.
@@ -28,17 +28,18 @@ export const ACTION_LABELS = {
 // there's something to interact with, otherwise it reloads (or swaps material in build mode).
 export const PAD_BUTTONS = {
   0: 'jump', 3: 'pickaxe', 4: 'prevItem', 5: 'nextItem', 6: 'ads', 7: 'fire',
-  8: 'map', 9: 'pause', 10: 'sprint', 11: 'crouch', 12: 'emote', 13: 'ping', 14: 'scoreboard', 15: 'cycleMat',
+  8: 'map', 9: 'pause', 10: 'sprint', 11: 'crouch', 12: 'inventory', 13: 'ping', 14: 'scoreboard', 15: 'emote',
 };
 // In build mode each trigger and bumper picks a piece and places it (hold to keep placing).
-export const PAD_BUILD = { 7: ['wall', 'fire'], 6: ['ramp', 'fire'], 5: ['floor', 'fire'], 4: ['cone', 'fire'] };
+export const PAD_BUILD = { 7: ['wall', 'fire'], 6: ['ramp', 'fire'], 5: ['floor', 'fire'], 4: ['cone', 'fire'], 15: 'cycleMat' };
 // What the controller card in Settings lists: [button, combat, build mode].
 export const PAD_LAYOUT = [
   ['RT', 'Fire', 'Wall'], ['LT', 'Aim down sights', 'Ramp'], ['RB', 'Next item', 'Floor'], ['LB', 'Previous item', 'Cone'],
   ['A', 'Jump', 'Jump'], ['B', 'Tap: build mode. Hold: edit', 'Tap: combat mode. Hold: edit'],
   ['X', 'Reload / interact', 'Change material / interact'], ['Y', 'Pickaxe', 'Pickaxe'],
   ['Left stick click', 'Sprint', 'Sprint'], ['Right stick click', 'Crouch', 'Crouch'],
-  ['D-pad up', 'Emote', 'Emote'], ['D-pad down', 'Place marker', 'Place marker'], ['D-pad left', 'Team / scoreboard', 'Team / scoreboard'],
+  ['D-pad up', 'Inventory (swap slots)', 'Inventory (swap slots)'], ['D-pad right', 'Emote', 'Change material'],
+  ['D-pad down', 'Place marker', 'Place marker'], ['D-pad left', 'Team / scoreboard', 'Team / scoreboard'],
   ['View', 'Map', 'Map'], ['Menu', 'Pause', 'Pause'],
   ['Editing', 'RT selects tiles (hold and drag), LT resets, B confirms', ''],
 ];

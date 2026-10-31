@@ -16,6 +16,7 @@ import { installTouch } from './touch.js';
 import { installPlatform } from './platform.js';
 import { installGamepad } from './gamepad.js';
 import { installShare } from './share.js';
+import { installInventory } from './inventory.js';
 
 export function installFeatures(game) {
   // installs are added below by each feature module, one line each
@@ -34,4 +35,5 @@ export function installFeatures(game) {
   installTouch(game);
   installGamepad(game);
   installShare(game);
+  installInventory(game);
 }

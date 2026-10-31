@@ -21,6 +21,7 @@ import { makeBus, makeCharacter, OUTFITS } from './models.js';
 import { mulberry32 } from './noise.js';
 import { makeWeapon, WEAPONS } from './items.js';
 import { assignTeams } from './teams.js';
+import { mapForSeed } from './maps.js';
 
 const BOT_NAMES = ['Blockhead', 'NoobMaster', 'CubeCrusher', 'Pixelita', 'SirLoots', 'DiamondDave', 'RampRat', 'TurtleKing', 'Sneaky_Sam', 'BoxBoxer', 'Lag_Larry', 'CrankItCarl',
   'SweatyBetty', 'JumpyJo', 'MossyMax', 'CobbleKate', 'ShieldSally', 'BushBob', 'GlideGus', 'LuckyLou', 'Snipezilla', 'Wobbles', 'BuildBuddy', 'Clanky',
@@ -117,12 +118,13 @@ export class Game {
   async loadWorld(seed, progress) {
     if (this.mesher) this.mesher.dispose();
     this.world = new World(seed);
-    progress?.('Generating island', 0.05);
+    progress?.(`Generating ${this.world.map.name}`, 0.05);
     await nextFrame();
     this.world.generate();
     this.mesher = new ChunkMesher(this.world, this.scene, this.atlas);
     this.mesher.waterMat = this.gfx.waterMat;
-    this.timeKey = TIME_KEYS[Math.abs(seed) % TIME_KEYS.length];
+    // the map picks its scene; the classic island cycles the time of day (seed / 10, since seed % 10 picks the map)
+    this.timeKey = this.world.map.time || TIME_KEYS[Math.floor(Math.abs(seed) / 10) % TIME_KEYS.length];
     this.gfx.setTime(this.timeKey);
     this.gfx.makeClouds(seed);
     const total = this.world.dirty.size;
@@ -194,8 +196,12 @@ export class Game {
     const ang = rand() * Math.PI * 2;
     const off = (rand() - 0.5) * 80;
     const cx = SX / 2 + Math.cos(ang + Math.PI / 2) * off, cz = SZ / 2 + Math.sin(ang + Math.PI / 2) * off;
+    // a random map each match, never the same one twice in a row
+    let seed = (rand() * 1e9) | 0;
+    while (mapForSeed(seed).id === this.lastMapId) seed = (rand() * 1e9) | 0;
+    this.lastMapId = mapForSeed(seed).id;
     const msg = {
-      t: 'start', seed: (rand() * 1e9) | 0,
+      t: 'start', seed,
       players: humans.map(h => h.id), humans, bots,
       bus: { a: [cx - Math.cos(ang) * SX * 0.75, cz - Math.sin(ang) * SX * 0.75], b: [cx + Math.cos(ang) * SX * 0.75, cz + Math.sin(ang) * SX * 0.75] },
       boss: mode !== 'creative' && this.story.wantsBoss(), diff: this.settings.difficulty, noBuild: mode !== 'creative' && !!this.settings.noBuild,
@@ -272,6 +278,7 @@ export class Game {
     this.story.onMatchStart();
     for (const sys of this.systems) sys.start?.(msg);
     this.audio.play('horn');
+    this.hud.notice(`${this.world.map.name}: ${this.world.map.blurb}`, '#ffd84a');
     this.ui.lockPointer();
   }
 

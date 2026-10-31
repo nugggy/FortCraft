@@ -26,8 +26,26 @@ export const TIMES = {
     label: 'Sunset', sun: [-0.85, 0.2, 0.35], sunColor: 0xffa268, sunI: 2.2, hemiSky: 0xf0c8b4, hemiGround: 0x5a4a44, hemiI: 1.1,
     zenith: 0x3b4f94, horizon: 0xff9e62, ground: 0x5d5a78, deep: 0x23366e, shallow: 0x6a6fb0, tint: [1.08, 0.98, 0.92], sat: 1.18, fogFar: 165,
   },
+  // scenes used by particular maps (src/maps.js)
+  dawn: {
+    label: 'Dawn', sun: [0.85, 0.16, -0.3], sunColor: 0xffb8a0, sunI: 1.9, hemiSky: 0xe8c8e0, hemiGround: 0x54465a, hemiI: 1.2,
+    zenith: 0x4a5aa0, horizon: 0xffc0a8, ground: 0x6a6080, deep: 0x22407a, shallow: 0x5a7ab8, tint: [1.05, 0.98, 1.0], sat: 1.12, fogFar: 170,
+  },
+  heat: {
+    label: 'Heatwave', sun: [0.2, 1.0, 0.4], sunColor: 0xfff0c8, sunI: 2.7, hemiSky: 0xffeccc, hemiGround: 0x8a7050, hemiI: 1.4,
+    zenith: 0x5a8ad0, horizon: 0xf4e0b8, ground: 0x9a8a70, deep: 0x1a5a90, shallow: 0x40a8c8, tint: [1.08, 1.0, 0.9], sat: 1.1, fogFar: 170,
+  },
+  mist: {
+    label: 'Misty', sun: [0.3, 0.7, 0.5], sunColor: 0xd8e0c8, sunI: 1.5, hemiSky: 0xc8d4c0, hemiGround: 0x4a5040, hemiI: 1.35,
+    zenith: 0x7f8f8a, horizon: 0xb4c0b0, ground: 0x5c6658, deep: 0x2a4038, shallow: 0x4f6a5a, tint: [0.98, 1.02, 0.96], sat: 0.95, fogFar: 115,
+  },
+  night: {
+    label: 'Night', sun: [0.4, 0.75, -0.5], sunColor: 0xb0c4ff, sunI: 1.1, hemiSky: 0x6a7fb8, hemiGround: 0x2a2a3a, hemiI: 0.95,
+    zenith: 0x070d24, horizon: 0x26335e, ground: 0x151a2c, deep: 0x0a1a38, shallow: 0x1c3a66, tint: [0.92, 0.96, 1.1], sat: 0.95, fogFar: 150,
+  },
 };
-export const TIME_KEYS = Object.keys(TIMES);
+// The classic island cycles through these; other maps pick their own scene.
+export const TIME_KEYS = ['morning', 'noon', 'afternoon', 'sunset'];
 
 const STORM = { zenith: new THREE.Color(0x3a1460), horizon: new THREE.Color(0x8a3ad0), fog: new THREE.Color(0x6a2ea8) };
 

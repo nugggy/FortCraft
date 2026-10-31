@@ -100,7 +100,6 @@ export class LootSystem {
 
   dropAll(actor) {
     for (let i = 0; i < 5; i++) if (actor.slots[i]) { this.drop(actor, actor.slots[i], 2.2); actor.slots[i] = null; }
-    for (const k in actor.ammo) if (actor.ammo[k] > 0) { this.drop(actor, { kind: 'ammo', ammo: k, count: actor.ammo[k] }, 2.2); actor.ammo[k] = 0; }
     for (const k in actor.mats) if (actor.mats[k] > 0) { this.drop(actor, { kind: 'mats', mat: k, count: actor.mats[k] }, 2.2); actor.mats[k] = 0; }
   }
 

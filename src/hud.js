@@ -234,7 +234,7 @@ export class Hud {
       if (wdef && wdef.ammo) {
         this.set('ammoType', 'text', AMMO[wdef.ammo].name.replace(' Ammo', ''));
         this.set('ammoType', 'background', AMMO[wdef.ammo].color);
-        this.set('ammo', 'html', `${held.mag} <small>/ ${pl.ammo[wdef.ammo]}</small>`);
+        this.set('ammo', 'html', `${held.mag} <small>/ &infin;</small>`);
       } else if (held.kind === 'heal') {
         const h = HEALS[held.id];
         this.set('ammoType', 'text', h.heal ? `+${h.heal} HP` : `+${h.shield} shield`);

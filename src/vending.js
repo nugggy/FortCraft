@@ -2,7 +2,7 @@
 // Stock is derived from the seed and storm phase so every client agrees without messages.
 // The buyer's simulator pays; the host spawns the item.
 import * as THREE from '../vendor/three.module.min.js';
-import { RARITY, WEAPONS, makeWeapon, ammoFor, itemName } from './items.js';
+import { RARITY, WEAPONS, makeWeapon, itemName } from './items.js';
 import { makePickupMesh } from './models.js';
 import { mulberry32 } from './noise.js';
 
@@ -111,7 +111,6 @@ export class Vending {
     const pos = { x: m.x + 0.5 + m.fx * 0.9, y: m.y + 1.0, z: m.z + 0.5 + m.fz * 0.9 };
     const vel = { x: m.fx * 2.5, y: 3, z: m.fz * 2.5 };
     g.loot.spawn({ ...m.item }, pos, vel);
-    if (WEAPONS[m.item.id].ammo) g.loot.spawn(ammoFor(m.item.id, 2), pos, { x: m.fx * 2, y: 4, z: m.fz * 2 });
   }
 
   update(dt) {

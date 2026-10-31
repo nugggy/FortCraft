@@ -36,6 +36,7 @@ body.touch.in-match-play #touchUI { display: block; }
 #tEdit { right: calc(3% + 60px); bottom: 48%; width: 50px; height: 50px; border-radius: 12px; font-size: 11px; background: rgba(40,140,230,.7); display: none; }
 #tEdit.show { display: grid; }
 #tEmote { left: 3%; top: 62%; width: 44px; height: 44px; }
+#tInv { left: calc(3% + 54px); top: 62%; width: 44px; height: 44px; border-radius: 12px; }
 #tPause { left: 50%; top: 6px; width: 40px; height: 40px; margin-left: -20px; border-radius: 10px; }
 #tPieces { position: absolute; right: 12%; top: 24%; display: none; gap: 6px; pointer-events: none; }
 body.touch.build-mode #tPieces { display: flex; }
@@ -70,6 +71,7 @@ const ICONS = {
   build: '<svg viewBox="0 0 24 24"><path d="M2 4h9v6H2zM13 4h9v6h-9zM2 12h5v6H2zM9 12h6v6H9zM17 12h5v6h-5z"/></svg>',
   emote: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM8 9a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm8 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm-9 5h10a5 5 0 0 1-10 0z"/></svg>',
   pause: '<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>',
+  inv: '<svg viewBox="0 0 24 24"><path d="M9 3h6v3h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4zm2 2v1h2V5zM5 10v2h14v-2z"/></svg>',
 };
 
 class TouchControls {
@@ -85,7 +87,7 @@ class TouchControls {
       <div class="tbtn" id="tJump">${ICONS.jump}</div><div class="tbtn" id="tCrouch">${ICONS.crouch}</div>
       <div class="tbtn" id="tAds">${ICONS.ads}</div><div class="tbtn" id="tReload">${ICONS.reload}</div>
       <div class="tbtn" id="tBuild">${ICONS.build}</div><div class="tbtn" id="tUse">Use</div><div class="tbtn" id="tEdit">Edit</div>
-      <div class="tbtn" id="tEmote">${ICONS.emote}</div><div class="tbtn" id="tPause">${ICONS.pause}</div>
+      <div class="tbtn" id="tEmote">${ICONS.emote}</div><div class="tbtn" id="tInv">${ICONS.inv}</div><div class="tbtn" id="tPause">${ICONS.pause}</div>
       <div id="tPieces"><div class="tbtn" data-p="wall">Wall</div><div class="tbtn" data-p="floor">Floor</div><div class="tbtn" data-p="ramp">Ramp</div><div class="tbtn" data-p="cone">Cone</div><div class="tbtn" data-mat="1">Mat</div></div>`;
     document.body.appendChild(this.root);
     const rot = document.createElement('div'); rot.id = 'rotateHint'; rot.innerHTML = '<div><b>&#8635;</b>Turn your device sideways to play</div>';
@@ -100,6 +102,7 @@ class TouchControls {
     this.tap('tBuild', () => this.C.vTap('buildToggle'));
     this.tap('tEdit', () => this.C.vTap('edit'));
     this.tap('tEmote', () => { game.emotes?.play?.(['bop', 'swing', 'wave'][Math.random() * 3 | 0]); });
+    this.tap('tInv', () => game.inventory?.open());
     this.tap('tPause', () => game.ui.showPause());
     for (const b of this.$('tPieces').children) {
       this.tap(b, () => { if (b.dataset.p) this.C.vTap(b.dataset.p); else this.C.vTap('cycleMat'); });
@@ -221,7 +224,7 @@ class TouchControls {
 
   refresh() {
     const g = this.game;
-    const playing = g.inMatch() && g.ui.screen === null && !g.bigMapOpen && !g.replay?.active;
+    const playing = g.inMatch() && g.ui.screen === null && !g.bigMapOpen && !g.inventoryOpen && !g.replay?.active;
     document.body.classList.toggle('in-match-play', playing);
     document.body.classList.toggle('in-match', g.inMatch());
     document.body.classList.toggle('build-mode', !!g.buildMode);

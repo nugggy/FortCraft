@@ -288,7 +288,7 @@ export class BotBrain {
   }
 
   hasGun() {
-    return this.a.slots.some(s => s && s.kind === 'weapon' && WEAPONS[s.id] && (s.mag > 0 || this.a.ammo[WEAPONS[s.id].ammo] > 0));
+    return this.a.slots.some(s => s && s.kind === 'weapon' && WEAPONS[s.id]); // ammo is unlimited
   }
 
   pickWeapon(dist) {
@@ -298,7 +298,6 @@ export class BotBrain {
       if (!s || s.kind !== 'weapon') return;
       const def = WEAPONS[s.id];
       if (!def) return;
-      if (s.mag <= 0 && (a.ammo[def.ammo] || 0) <= 0) return;
       const pr = (PREF_RANGE[s.id] || 15) * (s.id === 'sniper' ? 1 : this.p.range);
       let sc = -Math.abs(Math.log((dist + 2) / (pr + 2))) * 3 + s.rarity * 0.3 + (this.p.prefer[s.id] || 0);
       if (s.id === 'rocket' && dist < 8) sc -= 5;
@@ -580,7 +579,7 @@ export class BotBrain {
       this.sprint = d > 25;
       this.moveToward({ x: cx + 0.5, z: cz + 0.5 }, 1); this.lookAlongMove(); return;
     }
-    const item = g.loot.nearest(a, 35 * lootK, p => (p.item.kind === 'weapon' && weapons < 4) || ((p.item.kind === 'heal' || p.item.kind === 'throwable' || p.item.kind === 'utility') && a.hasRoomFor(p.item)) || p.item.kind === 'ammo');
+    const item = g.loot.nearest(a, 35 * lootK, p => (p.item.kind === 'weapon' && weapons < 4) || ((p.item.kind === 'heal' || p.item.kind === 'throwable' || p.item.kind === 'utility') && a.hasRoomFor(p.item)));
     if (item) { this.moveToward(item.pos, 1); this.lookAlongMove(); return; }
 
     if (!g.noBuild && a.mats.wood + a.mats.brick + a.mats.metal < (this.p.box ? 150 : 60)) {

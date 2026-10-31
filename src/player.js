@@ -12,7 +12,7 @@ const SLOT_ACTIONS = ['pickaxe', 'slot1', 'slot2', 'slot3', 'slot4', 'slot5'];
 // 'input' event (game.events.emit('input', action)) for feature modules.
 const CORE = new Set(['forward', 'back', 'left', 'right', 'jump', 'sprint', 'crouch', 'fire', 'ads', 'reload', 'interact',
   ...SLOT_ACTIONS, 'nextItem', 'prevItem', 'wall', 'floor', 'ramp', 'cone', 'buildToggle', 'cycleMat', 'edit', 'map']);
-const EXTRA = ['ping', 'emote', 'scoreboard'];
+const EXTRA = ['ping', 'emote', 'scoreboard', 'inventory'];
 
 export class PlayerController {
   constructor(game) {
@@ -29,7 +29,7 @@ export class PlayerController {
     this.editTarget = null;  // editable piece under the crosshair
     this.interactable = false;
     this.controls.contextInteract = () => this.interactable;
-    this.controls.padBlocked = () => (game.ui && game.ui.screen !== null) || !!game.creativeMenuOpen;
+    this.controls.padBlocked = () => (game.ui && game.ui.screen !== null) || !!game.creativeMenuOpen || !!game.inventoryOpen;
   }
 
   get actor() { return this.game.player; }

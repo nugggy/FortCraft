@@ -1,7 +1,7 @@
 // Supply drops: the host drops one crate per storm phase (from phase 1) inside the next circle.
 // It floats down under a blocky balloon with a beam of light; hold interact to open it.
 import * as THREE from '../vendor/three.module.min.js';
-import { rollWeapon, ammoFor, WEAPONS } from './items.js';
+import { rollWeapon, WEAPONS } from './items.js';
 import { WATER_LEVEL, SX, SZ } from './world.js';
 
 const FALL_SPEED = 3.2, START_Y = 105, OPEN_TIME = 1.5;
@@ -111,7 +111,6 @@ export class SupplyDrops {
     for (let k = 0; k < 2; k++) {
       const w = rollWeapon(rand, [0, 0, 0, 0.6, 0.4]);
       items.push(w);
-      if (WEAPONS[w.id].ammo) items.push(ammoFor(w.id, 2));
     }
     items.push({ kind: 'heal', id: 'shield', count: 2 }, { kind: 'heal', id: 'mini', count: 3 });
     if (!g.noBuild) items.push({ kind: 'mats', mat: 'brick', count: 100 }, { kind: 'mats', mat: 'metal', count: 100 });

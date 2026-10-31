@@ -1,6 +1,7 @@
 // Voxel world: storage, deterministic generation, raycasting, collision.
 import { B, BLOCKS, SOLID, PASS } from './blocks.js';
 import { makeNoise2D, fbm, mulberry32 } from './noise.js';
+import { mapForSeed } from './maps.js';
 
 export const SX = 320, SY = 64, SZ = 320, CHUNK = 16;
 export const WATER_LEVEL = 12;
@@ -43,6 +44,7 @@ function hash3(x, y, z, s) {
 export class World {
   constructor(seed) {
     this.seed = seed;
+    this.map = mapForSeed(seed); // preset that shapes the generator (src/maps.js)
     this.data = new Uint8Array(SX * SY * SZ);
     this.dirty = new Set();
     this.blockDamage = new Map();
@@ -151,36 +153,40 @@ export class World {
     const rand = mulberry32(seed);
     const nElev = makeNoise2D(seed + 1), nRidge = makeNoise2D(seed + 2), nCoast = makeNoise2D(seed + 3);
     const nDetail = makeNoise2D(seed + 4), nTemp = makeNoise2D(seed + 5), nMoist = makeNoise2D(seed + 6);
-    const nRiver = makeNoise2D(seed + 7), nPatch = makeNoise2D(seed + 8);
+    const nRiver = makeNoise2D(seed + 7), nPatch = makeNoise2D(seed + 8), nIsle = makeNoise2D(seed + 9);
+    const M = this.map, hills = M.hills ?? 1, mountains = M.mountains ?? 1, trees = M.trees ?? 1, hasLake = M.lake !== false;
     const N = SX * SZ;
     const H = new Int16Array(N), mask = new Float32Array(N);
     const cold = new Float32Array(N), dry = new Float32Array(N), wet = new Float32Array(N), moist = new Float32Array(N);
     const biome = this.biome, road = this.road;
-    const R = SX * 0.46;
+    const R = SX * (M.radius ?? 0.46);
     const lake = { x: SX / 2 + (rand() - 0.5) * 50, z: SZ / 2 + (rand() - 0.5) * 50, r: 19 + rand() * 5 };
 
     // --- heights and climate
     for (let z = 0; z < SZ; z++) for (let x = 0; x < SX; x++) {
       const i = x + z * SX;
       const dx = (x - SX / 2) / R, dz = (z - SZ / 2) / R;
-      const d = Math.sqrt(dx * dx + dz * dz) + 0.14 * nCoast(x * 0.016, z * 0.016);
+      let d = Math.sqrt(dx * dx + dz * dz);
+      if (M.shape === 'isles') d = d * 0.8 + (0.3 - fbm(nIsle, x * 0.014, z * 0.014, 3)) * 1.5; // land only where the noise is high
+      else if (M.shape === 'atoll') d = 0.45 + Math.abs(d - 0.62) * 2.2; // a ring of land around a lagoon
+      d += 0.14 * nCoast(x * 0.016, z * 0.016);
       const m = smooth((1 - d) / 0.25);
-      const t = fbm(nTemp, x * 0.005 + 300, z * 0.005, 3) * 1.8;
-      const mo = fbm(nMoist, x * 0.005, z * 0.005 + 300, 3) * 1.8;
+      const t = fbm(nTemp, x * 0.005 + 300, z * 0.005, 3) * 1.8 * (M.tempVar ?? 1) + (M.temp || 0);
+      const mo = fbm(nMoist, x * 0.005, z * 0.005 + 300, 3) * 1.8 * (M.moistVar ?? 1) + (M.moist || 0);
       const c = smooth((-t - 0.12) * 2.4);
       const dr = smooth((t - 0.12) * 2.6) * smooth((0.05 - mo) * 2.6);
       const w = smooth((mo - 0.28) * 2.6) * (1 - c) * (1 - dr);
       const e = fbm(nElev, x * 0.011, z * 0.011, 4);
       const ridge = 1 - Math.abs(fbm(nRidge, x * 0.007 + 50, z * 0.007, 3));
       const r4 = ridge * ridge * ridge * ridge;
-      const land = 17 + e * 8 * (1 - dr * 0.55) + r4 * (12 + c * 34) * m;
+      const land = 17 + e * 8 * hills * (1 - dr * 0.55) + r4 * (12 + c * 34) * mountains * m;
       let h = WL - 5 + m * land;
       h = h * (1 - w * m) + (WL + 1.4 + e * 2.5) * w * m; // swamps sit just above the water
       const rv = Math.abs(fbm(nRiver, x * 0.0042, z * 0.0042, 2));
       if (m > 0.3 && rv < 0.032) { const k = smooth((1 - rv / 0.032) * 1.6); h = h * (1 - k) + (WL - 2) * k; }
       const ld = Math.hypot(x - lake.x, z - lake.z) / (lake.r * (1 + 0.15 * nCoast(x * 0.05, z * 0.05)));
-      if (ld < 1.5) { const k = smooth((1.5 - ld) / 0.6); h = h * (1 - k) + (WL - 3) * k; }
-      if (ld < 0.32) h = Math.max(h, WL + 2.4);
+      if (hasLake && ld < 1.5) { const k = smooth((1.5 - ld) / 0.6); h = h * (1 - k) + (WL - 3) * k; }
+      if (hasLake && ld < 0.32) h = Math.max(h, WL + 2.4);
       H[i] = Math.max(2, Math.min(SY - 8, Math.round(h)));
       mask[i] = m; cold[i] = c; dry[i] = dr; wet[i] = w; moist[i] = mo;
     }
@@ -237,8 +243,10 @@ export class World {
     };
 
     // Loot Lake with a little island house
-    addPoi('lake', lake.x, lake.z);
-    tryPlan('house', lake.x, lake.z, 7, 7, 1, { force: true, base: WL + 3 });
+    if (hasLake) {
+      addPoi('lake', lake.x, lake.z);
+      tryPlan('house', lake.x, lake.z, 7, 7, 1, { force: true, base: WL + 3 });
+    }
 
     // Landmarks
     let at = search((x, z) => biomeOf(ci(x, z)) === BIOME.DESERT && areaOK(x, z, 19, 19));
@@ -457,7 +465,7 @@ export class World {
       const b = biome[i];
       const top = this.data[x + SX * (z + SZ * (h - 1))];
       if (this.data[x + SX * (z + SZ * h)] !== B.AIR) continue;
-      const r = rand();
+      const r = rand() / trees; // denser or sparser vegetation per map
       if (r < 0.0012 && (b === BIOME.PLAINS || b === BIOME.FOREST || b === BIOME.SNOW)) { this.boulder(x, h, z, rand, b === BIOME.FOREST); continue; }
       if (b === BIOME.FOREST && top === B.GRASS) {
         if (r < 0.055) { if (rand() < 0.3) this.birch(x, h, z, rand); else this.oak(x, h, z, rand); }

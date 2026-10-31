@@ -1,4 +1,4 @@
-// Emote wheel: hold the emote input (B / gamepad d-pad up), point at an emote, release to play.
+// Emote wheel: hold the emote input (B / gamepad d-pad right), point at an emote, release to play.
 // Emotes lock movement until you move, jump or fire. Synced with the 'emote' message and snapshot field 'em'.
 
 export const EMOTES = [

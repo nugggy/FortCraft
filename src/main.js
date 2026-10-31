@@ -119,7 +119,7 @@ class UI {
 
   showPause() {
     const g = this.g;
-    if (!g.inMatch() || g.phase === 'over' || this.screen === 'end' || g.bigMapOpen || g.creativeMenuOpen || g.replay?.active) return; // creative menu and kill cam free the mouse
+    if (!g.inMatch() || g.phase === 'over' || this.screen === 'end' || g.bigMapOpen || g.creativeMenuOpen || g.inventoryOpen || g.replay?.active) return; // creative menu, inventory and kill cam free the mouse
     g.paused = !g.net.online;
     $('pauseTitle').textContent = g.net.online ? 'Match running' : 'Paused';
     $('btnQuit').textContent = g.net.online && g.net.isHost ? 'End match for everyone' : 'Leave match';
@@ -517,9 +517,9 @@ class UI {
       if (document.pointerLockElement === g.renderer.domElement) {
         g.paused = false;
         if (this.screen === 'pause' || this.screen === 'end') this.showScreen(null);
-      } else if (g.inMatch() && this.screen === null && !g.bigMapOpen && !g.creativeMenuOpen && !g.controller?.controls?.usingPad) this.showPause();
+      } else if (g.inMatch() && this.screen === null && !g.bigMapOpen && !g.creativeMenuOpen && !g.inventoryOpen && !g.controller?.controls?.usingPad) this.showPause();
     });
-    g.renderer.domElement.addEventListener('click', () => { if (g.inMatch() && !document.pointerLockElement && this.screen === null && !g.bigMapOpen && !g.creativeMenuOpen && !g.replay?.active) this.lockPointer(); });
+    g.renderer.domElement.addEventListener('click', () => { if (g.inMatch() && !document.pointerLockElement && this.screen === null && !g.bigMapOpen && !g.creativeMenuOpen && !g.inventoryOpen && !g.replay?.active) this.lockPointer(); });
   }
 
   syncSettings() {

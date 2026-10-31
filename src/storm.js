@@ -1,6 +1,6 @@
 // The Static: shrinking storm circle. Host simulates; clients receive snapshots.
 import * as THREE from '../vendor/three.module.min.js';
-import { SX, SZ } from './world.js';
+import { SX, SZ, WATER_LEVEL } from './world.js';
 
 const PHASES = [
   { wait: 55, shrink: 40, frac: 0.55, dps: 1 },
@@ -61,10 +61,16 @@ export class Storm {
   planNext() {
     const ph = PHASES[Math.min(this.phase, PHASES.length - 1)];
     const r = this.cur.r * ph.frac;
-    const ang = Math.random() * Math.PI * 2;
-    const off = Math.random() * (this.cur.r - r) * 0.85;
-    let x = this.cur.x + Math.cos(ang) * off, z = this.cur.z + Math.sin(ang) * off;
-    x = Math.max(30, Math.min(SX - 30, x)); z = Math.max(30, Math.min(SZ - 30, z));
+    // try a few spots and prefer one on land (atoll and archipelago maps have a lot of sea)
+    const world = this.game.world;
+    let x, z;
+    for (let tries = 0; tries < 12; tries++) {
+      const ang = Math.random() * Math.PI * 2;
+      const off = Math.random() * (this.cur.r - r) * 0.85;
+      x = this.cur.x + Math.cos(ang) * off; z = this.cur.z + Math.sin(ang) * off;
+      x = Math.max(30, Math.min(SX - 30, x)); z = Math.max(30, Math.min(SZ - 30, z));
+      if (!world || world.topSolid(x, z) >= WATER_LEVEL) break;
+    }
     this.next = { x, z, r };
   }
 

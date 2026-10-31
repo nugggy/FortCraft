@@ -118,7 +118,7 @@ export const FLOOR_TABLE = [0.42, 0.32, 0.17, 0.07, 0.02];
 
 export function rollChest(rand) {
   const w = rollWeapon(rand, CHEST_TABLE);
-  const items = [w, ammoFor(w.id, 2)];
+  const items = [w]; // ammo is unlimited, so chests no longer drop it
   if (rand() < 0.7) items.push(rollHeal(rand));
   if (rand() < 0.28) items.push(rollThrowable(rand));
   items.push({ kind: 'mats', mat: 'wood', count: 30 });
@@ -128,12 +128,10 @@ export function rollChest(rand) {
 
 export function rollFloor(rand) {
   const r = rand();
-  if (r < 0.55) { const w = rollWeapon(rand, FLOOR_TABLE); return [w, ammoFor(w.id)]; }
+  if (r < 0.55) return [rollWeapon(rand, FLOOR_TABLE)];
   if (r < 0.75) return [rollHeal(rand)];
   if (r < 0.85) return [rollThrowable(rand)];
-  const keys = Object.keys(AMMO).filter(k => k !== 'rockets');
-  const a = keys[rand() * keys.length | 0];
-  return [{ kind: 'ammo', ammo: a, count: AMMO[a].per }];
+  return [{ kind: 'mats', mat: 'wood', count: 20 }]; // ammo is unlimited: the old ammo drop is now wood
 }
 
 // ---------------------------------------------------------------- icons

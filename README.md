@@ -28,7 +28,7 @@ FortCraft runs on phones and tablets in the browser. Touch controls switch on au
 
 - **Move:** the left thumb is a floating joystick. Push it all the way forward to sprint.
 - **Aim:** drag anywhere on the right side, or drag on the fire button while shooting.
-- **Buttons:** fire, jump, crouch or slide, aim, reload, build (with wall, floor, ramp and cone buttons in build mode), and a Use button that appears next to chests, loot, vending machines and minecarts.
+- **Buttons:** fire, jump, crouch or slide, aim, reload, emote, inventory, build (with wall, floor, ramp and cone buttons in build mode), and a Use button that appears next to chests, loot, vending machines and minecarts.
 - **Shortcuts:** tap hotbar slots to equip, and tap the minimap for the full map.
 - **Aim assist:** a light assist for touch and controller players keeps cross-play fair. Mouse players never get assist. Turn it off in Settings under Touch and mobile.
 - **Phone defaults:** phones start on Low graphics with 10 bots. Play in landscape.
@@ -80,7 +80,20 @@ FortCraft checks GitHub for a newer version every time it loads and shows a bann
 
 ## The island
 
-Every match generates a new 320 × 320 island from a shared seed, so LAN players all see the same one. There are 12 named locations, including towns, tower blocks, a farm, Loot Lake, a desert temple, a lighthouse, a castle, a mine and a factory. Biomes cover plains, forest, desert, snowy peaks and swamp, with rivers, roads and bridges in between. Each match also rolls a time of day (morning, midday, afternoon or sunset).
+Every match generates a new 320 × 320 island from a shared seed, so LAN players all see the same one. There are 12 named locations, including towns, tower blocks, a farm, Loot Lake, a desert temple, a lighthouse, a castle, a mine and a factory. Biomes cover plains, forest, desert, snowy peaks and swamp, with rivers, roads and bridges in between. Each match picks one of ten maps at random (never the same one twice in a row), each with its own terrain and scene:
+
+- **Cubeterra:** the classic island, with a random time of day.
+- **Sunscorch Dunes:** mostly desert, in a heatwave.
+- **Frostbite Peaks:** snow and tall mountains.
+- **Murkwater Marsh:** swamp under heavy fog.
+- **Emerald Wilds:** dense forest from coast to coast.
+- **Shattered Isles:** an archipelago of small islands.
+- **Titan Ridge:** huge peaks and deep valleys.
+- **Moonlit Isle:** the classic island at night.
+- **Coral Atoll:** a ring of land around a lagoon, at dawn.
+- **Golden Prairie:** flat open plains at sunset.
+
+Ammo is unlimited. Guns still reload, but never run dry.
 
 ## Graphics
 
@@ -102,6 +115,7 @@ You earn XP for eliminations, chests, placement and wins, and level up over time
 | Move, jump | W A S D, Space |
 | Shoot or swing, aim down sights | Left click, right click |
 | Pickaxe, inventory slots | 1, 2 to 6 (or mouse wheel) |
+| Inventory (pick an item, then the slot to swap it into) | I |
 | Reload | R |
 | Pick up, search chest | E (hold E on chests) |
 | Wall, floor, ramp, cone | Q, Z, X, V |
@@ -123,7 +137,7 @@ Xbox and other standard controllers work on PC and on phones (Bluetooth or USB),
 | X | Reload, or interact when there's something to pick up or open | Change material, or interact |
 | Y | Pickaxe | Pickaxe |
 | Left stick click / right stick click | Sprint / crouch | Sprint / crouch |
-| D-pad up / down / left | Emote / place marker / team | Same |
+| D-pad up / right / down / left | Inventory (swap slots) / emote / place marker / team | Inventory / change material / place marker / team |
 | View / Menu | Map / pause | Same |
 
 While editing, RT selects tiles (hold and drag), LT resets the piece and B confirms. In menus, the d-pad or left stick moves, A selects, B goes back and LB / RB switch tabs. On a phone the touch controls hide while a controller is in use and come back when you touch the screen.

@@ -67,7 +67,7 @@ export class Combat {
     const w = a.heldWeapon();
     if (!w || w.id === 'pickaxe' || a.reloading > 0) return;
     const def = WEAPONS[w.id];
-    if (w.mag >= def.mag || a.ammo[def.ammo] <= 0) return;
+    if (w.mag >= def.mag) return; // ammo is unlimited: a reload always refills the magazine
     a.reloading = def.reload[w.rarity];
     a.reloadTotal = a.reloading;
     if (a === this.game.player) this.game.audio.play('reload', { vol: 0.7 });
@@ -107,8 +107,7 @@ export class Combat {
         const w = a.heldWeapon();
         if (w && w.id !== 'pickaxe') {
           const def = WEAPONS[w.id];
-          const take = Math.min(def.mag - w.mag, a.ammo[def.ammo]);
-          w.mag += take; a.ammo[def.ammo] -= take;
+          w.mag = def.mag;
         }
         a.reloading = 0;
       }
@@ -144,8 +143,7 @@ export class Combat {
     if (def.melee) return this.swing(a, origin, dir);
     if (!def.auto && !pressed) return false;
     if (held.mag <= 0) {
-      if (a.ammo[def.ammo] > 0) this.startReload(a);
-      else if (a === this.game.player && pressed) this.game.audio.play('empty');
+      this.startReload(a);
       return false;
     }
     held.mag--;
